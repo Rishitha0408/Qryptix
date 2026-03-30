@@ -30,12 +30,17 @@ limiter = Limiter(
 logging.basicConfig(filename='admin_approvals.log', level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Using an absolute path to ensure database persistence
-db_path = os.path.join(basedir, 'instance', 'database_v2.db')
+# Using a path that works on both local and Vercel (Serverless)
+if os.environ.get('VERCEL'):
+    db_path = '/tmp/database_v2.db'
+else:
+    db_path = os.path.join(basedir, 'instance', 'database_v2.db')
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
-app.config['SECURE_FOLDERS'] = os.path.join(basedir, 'secure_folders')
+app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+app.config['SECURE_FOLDERS'] = '/tmp/secure_folders'
 
 print(f"Database located at: {db_path}")
 
@@ -43,7 +48,6 @@ db.init_app(app)
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['SECURE_FOLDERS'], exist_ok=True)
-os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
 with app.app_context():
     db.create_all()
