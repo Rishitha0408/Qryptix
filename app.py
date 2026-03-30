@@ -30,19 +30,30 @@ limiter = Limiter(
 logging.basicConfig(filename='admin_approvals.log', level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Using a path that works on both local and Vercel (Serverless)
-if os.environ.get('VERCEL'):
-    db_path = '/tmp/database_v2.db'
+# --- Permanent Postgres Configuration for Vercel ---
+if os.environ.get('VERCEL') == '1':
+    # Vercel provides POSTGRES_URL or DATABASE_URL when you connect Neon/Postgres
+    database_url = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
+    
+    if database_url:
+        # SQLAlchemy requires 'postgresql://' but Vercel sometimes provides 'postgres://'
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        # Emergency fallback to /tmp if Postgres is not found but running on Vercel
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/database_v2.db'
 else:
+    # Standard SQLite for Local Development
     db_path = os.path.join(basedir, 'instance', 'database_v2.db')
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
-app.config['SECURE_FOLDERS'] = '/tmp/secure_folders'
+app.config['UPLOAD_FOLDER'] = '/tmp/uploads' if os.environ.get('VERCEL') else os.path.join(basedir, 'uploads')
+app.config['SECURE_FOLDERS'] = '/tmp/secure_folders' if os.environ.get('VERCEL') else os.path.join(basedir, 'secure_folders')
 
-print(f"Database located at: {db_path}")
+print(f"Database located at: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
 db.init_app(app)
 
