@@ -6,13 +6,34 @@
         Registration</h2>
     <form method="POST" action="{{ url_for('register') }}">
         <div class="form-group">
-            <label for="username"><i class="fa-solid fa-user"></i> Chosen Username</label>
-            <input type="text" id="username" name="username" class="form-control" required placeholder="Ex: DrSmith">
+            <label for="full_name"><i class="fa-solid fa-user-doctor"></i> Full Name (as per NMC)</label>
+            <input type="text" id="full_name" name="full_name" class="form-control" required
+                placeholder="Ex: Dr. John Smith">
+        </div>
+        <div class="form-group">
+            <label for="username"><i class="fa-solid fa-fingerprint"></i> System Username</label>
+            <input type="text" id="username" name="username" class="form-control" required
+                placeholder="Ex: drsmith_vault">
         </div>
         <div class="form-group">
             <label for="email"><i class="fa-solid fa-envelope"></i> Email Address</label>
             <input type="email" id="email" name="email" class="form-control" required
                 placeholder="Ex: dr.smith@example.com">
+        </div>
+        <div class="form-group">
+            <label for="mobile_number"><i class="fa-solid fa-phone"></i> Mobile Number</label>
+            <input type="tel" id="mobile_number" name="mobile_number" class="form-control" required
+                placeholder="Ex: +1 234 567 8900">
+        </div>
+        <div class="form-group">
+            <label for="registration_year"><i class="fa-solid fa-calendar-days"></i> MNC Registration Year</label>
+            <input type="number" id="registration_year" name="registration_year" class="form-control" required
+                placeholder="Ex: 2022" min="1950" max="2026">
+        </div>
+        <div class="form-group">
+            <label for="state_medical_council"><i class="fa-solid fa-building-columns"></i> State Medical Council</label>
+            <input type="text" id="state_medical_council" name="state_medical_council" class="form-control" required
+                placeholder="Ex: Maharashtra Medical Council">
         </div>
         <div class="form-group">
             <label for="license_id"><i class="fa-solid fa-id-badge"></i> National Medical License ID</label>

@@ -114,7 +114,11 @@ def index():
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
+        full_name = request.form.get('full_name')
         email = request.form.get('email')
+        mobile_number = request.form.get('mobile_number')
+        registration_year = request.form.get('registration_year')
+        state_medical_council = request.form.get('state_medical_council')
         password = request.form.get('password')
         license_id = request.form.get('license_id')
 
@@ -133,7 +137,11 @@ def register():
         hashed_password = generate_password_hash(password)
         new_user = User(
             username=username,
+            full_name=full_name,
             email=email,
+            mobile_number=mobile_number,
+            registration_year=registration_year,
+            state_medical_council=state_medical_council,
             password=hashed_password,
             license_id=license_id,
             role='doctor',

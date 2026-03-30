@@ -24,7 +24,7 @@ body {
     font-family: 'Outfit', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    background-image: 
+    background-image:
         radial-gradient(circle at 10% 20%, rgba(0, 198, 255, 0.08), transparent 30%),
         radial-gradient(circle at 90% 80%, rgba(0, 114, 255, 0.08), transparent 30%);
     background-attachment: fixed;
@@ -44,7 +44,11 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
     margin-top: 0;
     font-weight: 600;
 }
@@ -112,9 +116,23 @@ a:hover {
     border: 1px solid transparent;
 }
 
-.flash-success { background: rgba(0, 230, 118, 0.1); color: var(--success-color); border-color: var(--success-color); }
-.flash-danger { background: rgba(255, 75, 75, 0.1); color: var(--danger-color); border-color: var(--danger-color); }
-.flash-warning { background: rgba(255, 183, 77, 0.1); color: var(--warning-color); border-color: var(--warning-color); }
+.flash-success {
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.flash-danger {
+    background: rgba(255, 75, 75, 0.1);
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.flash-warning {
+    background: rgba(255, 183, 77, 0.1);
+    color: var(--warning-color);
+    border-color: var(--warning-color);
+}
 
 /* Layouts */
 .container {
@@ -253,7 +271,8 @@ table {
     margin-top: 1.5rem;
 }
 
-th, td {
+th,
+td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
@@ -305,13 +324,27 @@ tr:hover {
 
 /* Animations */
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Modals / Action Panels */
@@ -327,12 +360,14 @@ tr:hover {
     gap: 3rem;
     margin-top: 3rem;
 }
+
 .feature {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 200px;
 }
+
 .feature-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
@@ -343,7 +378,7 @@ tr:hover {
 
 /* File Upload customization */
 input[type="file"] {
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
     padding: 1rem;
     border-radius: 8px;
     width: 100%;
@@ -351,6 +386,7 @@ input[type="file"] {
     color: var(--text-color);
     cursor: pointer;
 }
+
 input[type="file"]::file-selector-button {
     background: var(--accent-color);
     color: #fff;
@@ -369,6 +405,7 @@ input[type="file"]::file-selector-button {
     font-size: 0.8rem;
     font-weight: 600;
 }
+
 .badge-qkd {
     background: rgba(0, 198, 255, 0.2);
     color: var(--accent-color);

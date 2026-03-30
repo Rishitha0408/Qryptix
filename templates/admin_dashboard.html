@@ -2,16 +2,38 @@
 
 {% block content %}
 <div style="width: 100%; max-width: 1000px; margin-top: 2rem;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-        <div>
-            <h2><i class="fa-solid fa-user-shield text-gradient"></i> Administrator Dashboard</h2>
-            <p style="color: var(--text-muted);">Manage platform access and verify government licenses for applying
-                doctors.</p>
-        </div>
-        <div class="form-group" style="margin-bottom: 0; min-width: 300px;">
-            <label for="doctorSearch"><i class="fa-solid fa-magnifying-glass"></i> Search Doctors</label>
-            <input type="text" id="doctorSearch" class="form-control" placeholder="Search by name or license ID..."
-                onkeyup="filterDoctors()">
+    <div style="margin-bottom: 2rem;">
+        <h2><i class="fa-solid fa-user-shield text-gradient"></i> Administrator Dashboard</h2>
+        <p style="color: var(--text-muted);">Manage platform access and verify government licenses for applying doctors.
+        </p>
+    </div>
+
+    <!-- Verification Search Hub -->
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border: 1px solid rgba(0, 163, 255, 0.2);">
+        <h4
+            style="margin-bottom: 1.2rem; color: var(--accent-color); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+            <i class="fa-solid fa-file-shield"></i> Advanced Verification Search
+        </h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="searchName" style="font-size: 0.75rem;">Doctor Name</label>
+                <input type="text" id="searchName" class="form-control" placeholder="Enter Doctor Name"
+                    onkeyup="filterDoctors()">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="searchRegNum" style="font-size: 0.75rem;">Registration Number</label>
+                <input type="text" id="searchRegNum" class="form-control" placeholder="Enter Registration No"
+                    onkeyup="filterDoctors()">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="searchYear" style="font-size: 0.75rem;">Year of Registration</label>
+                <input type="number" id="searchYear" class="form-control" placeholder="YYYY" onkeyup="filterDoctors()">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="searchCouncil" style="font-size: 0.75rem;">State Medical Council</label>
+                <input type="text" id="searchCouncil" class="form-control" placeholder="Search Council"
+                    onkeyup="filterDoctors()">
+            </div>
         </div>
     </div>
 
@@ -28,17 +50,35 @@
         <table>
             <thead>
                 <tr>
-                    <th>Username</th>
-                    <th>Govt License ID</th>
-                    <th>License Status</th>
+                    <th>Full Name</th>
+                    <th>Email / Mobile</th>
+                    <th>License (MNC)</th>
+                    <th>Reg Year</th>
+                    <th>Medical Council</th>
+                    <th>NMC Portal</th>
                     <th style="text-align: right;">Action</th>
                 </tr>
             </thead>
             <tbody id="pendingBody">
                 {% for doc in pending %}
-                <tr class="doctor-row" data-name="{{ doc.username }}" data-id="{{ doc.license_id }}">
-                    <td>{{ doc.username }}</td>
+                <tr class="doctor-row" data-name="{{ doc.full_name or doc.username }}" data-id="{{ doc.license_id }}"
+                    data-year="{{ doc.registration_year or '' }}" data-council="{{ doc.state_medical_council or '' }}">
+                    <td style="font-weight: 600;">{{ doc.full_name or 'N/A' }}</td>
+                    <td style="font-size: 0.8rem; color: var(--text-muted);">
+                        <div><i class="fa-solid fa-envelope"></i> {{ doc.email }}</div>
+                        <div><i class="fa-solid fa-phone"></i> {{ doc.mobile_number or 'N/A' }}</div>
+                    </td>
                     <td style="font-family: monospace; color: var(--accent-color);">{{ doc.license_id }}</td>
+                    <td>{{ doc.registration_year or 'N/A' }}</td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);">{{ doc.state_medical_council or 'N/A' }}
+                    </td>
+                    <td>
+                        <a href="https://www.nmc.org.in/information-desk/indian-medical-register/" target="_blank"
+                            class="btn"
+                            style="padding: 0.3rem 0.6rem; font-size: 0.7rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-color);">
+                            <i class="fa-solid fa-up-right-from-square"></i> Check NMC
+                        </a>
+                    </td>
                     <td>
                         {% if doc.is_license_valid %}
                         <span style="color: var(--success-color);"><i class="fa-solid fa-check-double"></i>
@@ -87,14 +127,20 @@
                 <tr>
                     <th>Username</th>
                     <th>Govt License ID</th>
+                    <th>Reg Year</th>
+                    <th>Medical Council</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody id="verifiedBody">
                 {% for doc in approved %}
-                <tr class="doctor-row" data-name="{{ doc.username }}" data-id="{{ doc.license_id }}">
+                <tr class="doctor-row" data-name="{{ doc.username }}" data-id="{{ doc.license_id }}"
+                    data-year="{{ doc.registration_year or '' }}" data-council="{{ doc.state_medical_council or '' }}">
                     <td>{{ doc.username }}</td>
                     <td style="font-family: monospace; color: var(--text-muted);">{{ doc.license_id }}</td>
+                    <td>{{ doc.registration_year or 'N/A' }}</td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);">{{ doc.state_medical_council or 'N/A' }}
+                    </td>
                     <td><span style="color: var(--success-color); font-weight: 600;"><i
                                 class="fa-solid fa-circle-check"></i> Cleared</span></td>
                 </tr>
@@ -109,14 +155,26 @@
 
 <script>
     function filterDoctors() {
-        const query = document.getElementById('doctorSearch').value.toLowerCase();
+        const nameQuery = document.getElementById('searchName').value.toLowerCase();
+        const regQuery = document.getElementById('searchRegNum').value.toLowerCase();
+        const yearQuery = document.getElementById('searchYear').value.toLowerCase();
+        const councilQuery = document.getElementById('searchCouncil').value.toLowerCase();
+
         const rows = document.querySelectorAll('.doctor-row');
         let foundAny = false;
 
         rows.forEach(row => {
             const name = row.dataset.name.toLowerCase();
             const licenseId = row.dataset.id.toLowerCase();
-            if (name.includes(query) || licenseId.includes(query)) {
+            const year = row.dataset.year.toLowerCase();
+            const council = row.dataset.council.toLowerCase();
+
+            const matchesName = nameQuery === '' || name.includes(nameQuery);
+            const matchesReg = regQuery === '' || licenseId.includes(regQuery);
+            const matchesYear = yearQuery === '' || year.includes(yearQuery);
+            const matchesCouncil = councilQuery === '' || council.includes(councilQuery);
+
+            if (matchesName && matchesReg && matchesYear && matchesCouncil) {
                 row.style.display = '';
                 foundAny = true;
             } else {
@@ -127,8 +185,9 @@
         // Handle section visibility
         const noResults = document.getElementById('noResults');
         const sections = document.querySelectorAll('.clearance-container');
+        const isSearching = nameQuery !== '' || regQuery !== '' || yearQuery !== '' || councilQuery !== '';
 
-        if (!foundAny && query !== '') {
+        if (!foundAny && isSearching) {
             noResults.style.display = 'block';
             sections.forEach(s => s.style.display = 'none');
         } else {
