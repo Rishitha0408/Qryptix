@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 1000px; margin-top: 2rem;">
+    <h2><i class="fa-solid fa-user-shield text-gradient"></i> Administrator Dashboard</h2>
+    <p style="color: var(--text-muted);">Manage platform access and verify government licenses for applying doctors.</p>
+
+    <div class="glass-panel action-panel">
+        <h3 style="color: var(--warning-color)"><i class="fa-solid fa-triangle-exclamation"></i> Pending Clearances</h3>
+        {% if pending %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Govt License ID</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in pending %}
+                <tr>
+                    <td>{{ doc.username }}</td>
+                    <td style="font-family: monospace; color: var(--accent-color);">{{ doc.license_id }}</td>
+                    <td>
+                        <a href="{{ url_for('approve_doctor', user_id=doc.id) }}" class="btn btn-success"
+                            style="padding: 0.4rem 1rem; font-size: 0.85rem;">Approve Access</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No pending requests at the moment.</p>
+        {% endif %}
+    </div>
+
+    <div class="glass-panel action-panel">
+        <h3 style="color: var(--success-color)"><i class="fa-solid fa-users-viewfinder"></i> Verified Doctors</h3>
+        {% if approved %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Govt License ID</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in approved %}
+                <tr>
+                    <td>{{ doc.username }}</td>
+                    <td style="font-family: monospace; color: var(--text-muted);">{{ doc.license_id }}</td>
+                    <td><span style="color: var(--success-color); font-weight: 600;"><i
+                                class="fa-solid fa-circle-check"></i> Cleared</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No verified doctors yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

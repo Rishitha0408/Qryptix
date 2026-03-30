@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="glass-panel form-container">
+    <h2 style="text-align: center; margin-bottom: 2rem;">Qryptix <span class="text-gradient">Doctor</span>
+        Registration</h2>
+    <form method="POST" action="{{ url_for('register') }}">
+        <div class="form-group">
+            <label for="username"><i class="fa-solid fa-user"></i> Chosen Username</label>
+            <input type="text" id="username" name="username" class="form-control" required placeholder="Ex: DrSmith">
+        </div>
+        <div class="form-group">
+            <label for="email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+            <input type="email" id="email" name="email" class="form-control" required
+                placeholder="Ex: dr.smith@example.com">
+        </div>
+        <div class="form-group">
+            <label for="license_id"><i class="fa-solid fa-id-badge"></i> National Medical License ID</label>
+            <input type="text" id="license_id" name="license_id" class="form-control" required
+                placeholder="Ex: GOV-12345678">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;"><i
+                    class="fa-solid fa-circle-info"></i> Your license will be manually verified via the National Medical
+                Commission (NMC) portal.
+            </p>
+        </div>
+        <div class="form-group">
+            <label for="password"><i class="fa-solid fa-lock"></i> Access Password</label>
+            <input type="password" id="password" name="password" class="form-control" required
+                placeholder="Use high-entropy password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem; font-weight: 600;">Initiate
+            Enrollment &nbsp;<i class="fa-solid fa-paper-plane"></i></button>
+        <div style="text-align: center; margin-top: 1rem;">
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Already a member? <a
+                    href="{{ url_for('login') }}">Access Portal</a></p>
+        </div>
+    </form>
+</div>
+{% endblock %}

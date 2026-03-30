@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+instance/
+uploads/
+secure_folders/
+admin_approvals.log
+.env
+.DS_Store

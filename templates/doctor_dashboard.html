@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 1000px; margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h2><i class="fa-solid fa-atom text-gradient"></i> Qryptix Workspace</h2>
+            <p style="color: var(--text-muted); margin: 0;">Welcome, Dr. {{ user.username }}. Authenticated session
+                active within the secure biometric domain.</p>
+        </div>
+        <div class="form-group" style="margin-bottom: 0; min-width: 300px;">
+            <label for="patientSearch" style="color: var(--accent-color); font-weight: 600;"><i
+                    class="fa-solid fa-magnifying-glass"></i> Search Volumes</label>
+            <input type="text" id="patientSearch" class="form-control" placeholder="Search by name..."
+                onkeyup="filterWorkspaces()" style="border-color: rgba(0, 198, 255, 0.3);">
+        </div>
+    </div>
+
+    <!-- Create Folder Section -->
+    <div class="glass-panel action-panel" style="margin-bottom: 3rem; border: 1px solid rgba(0, 198, 255, 0.1);">
+        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-folder-plus text-gradient"></i> Initialize Encrypted
+            Volume</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Allocates a new secure partition
+            for specific patient biometrics or clinical datasets.</p>
+        <form method="POST" action="{{ url_for('create_folder') }}" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div class="form-group" style="flex: 1; min-width: 300px; margin-bottom: 0;">
+                <input type="text" name="folder_name" class="form-control" required
+                    placeholder="Workspace Label (e.g. Patient-001 or Retina-Set-A)">
+            </div>
+            <button type="submit" class="btn btn-primary" style="font-weight: 600;">Deploy Workspace &nbsp;<i
+                    class="fa-solid fa-microchip"></i></button>
+        </form>
+    </div>
+
+    <!-- No Results State -->
+    <div id="noResults" class="glass-panel"
+        style="display: none; text-align: center; padding: 3rem; margin-bottom: 2rem; color: var(--text-muted);">
+        <i class="fa-solid fa-folder-minus fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+        <h3>No matching volumes found</h3>
+        <p>Try a different keyword or initialize a new volume above.</p>
+    </div>
+
+    <!-- Active Folders Grid -->
+    <div id="gridHeader"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0;"><i class="fa-solid fa-vault"></i> Active Secure Volumes</h3>
+    </div>
+
+    <div class="dashboard-grid" id="activeVolumesGrid">
+        {% set active_folders = folders | selectattr('is_active', 'equalto', True) | list %}
+        {% if active_folders %}
+        {% for folder in active_folders %}
+        <div class="glass-panel card workspace-card" data-name="{{ folder.name }}"
+            style="transition: transform 0.3s ease; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <i class="fa-solid fa-folder-open fa-2x text-gradient"></i>
+                <span style="font-size: 0.7rem; color: var(--text-muted)">ID: {{ folder.id }}</span>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                title="{{ folder.name }}">{{ folder.name }}</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Initialised: {{
+                folder.created_at.strftime('%b %d, %Y') }}</p>
+
+            <a href="{{ url_for('folder_view', folder_id=folder.id) }}" class="btn btn-primary btn-block"
+                style="font-weight: 600;">
+                Open Volume &nbsp;<i class="fa-solid fa-unlock-keyhole"></i>
+            </a>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p
+            style="grid-column: 1/-1; color: var(--text-muted); text-align: center; padding: 2rem; border: 1px dashed var(--border-color); border-radius: 8px;">
+            No active folders found. Initialize one above.</p>
+        {% endif %}
+    </div>
+
+    <!-- Archived Folders Section -->
+    {% set inactive_folders = folders | selectattr('is_active', 'equalto', False) | list %}
+    {% if inactive_folders %}
+    <div
+        style="margin-top: 4rem; margin-bottom: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2rem;">
+        <h3 style="color: var(--text-muted);"><i class="fa-solid fa-box-archive"></i> Archived Records</h3>
+    </div>
+    <div class="dashboard-grid" id="inactiveVolumesGrid">
+        {% for folder in inactive_folders %}
+        <div class="glass-panel card workspace-card" data-name="{{ folder.name }}"
+            style="opacity: 0.6; transition: transform 0.3s ease; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <i class="fa-solid fa-folder-closed fa-2x" style="color: var(--text-muted);"></i>
+                <span class="badge" style="font-size: 0.6rem; background: var(--border-color);">ARCHIVED</span>
+            </div>
+            <h3
+                style="margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted);">
+                {{ folder.name }}</h3>
+            <a href="{{ url_for('folder_view', folder_id=folder.id) }}" class="btn btn-outline btn-block"
+                style="font-size: 0.8rem; padding: 0.4rem;">View Archive</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function filterWorkspaces() {
+        const query = document.getElementById('patientSearch').value.toLowerCase();
+        const cards = document.querySelectorAll('.workspace-card');
+        let foundAny = false;
+
+        cards.forEach(card => {
+            const name = card.dataset.name.toLowerCase();
+            if (name.includes(query)) {
+                card.style.display = '';
+                foundAny = true;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        const noResults = document.getElementById('noResults');
+        const activeGrid = document.getElementById('activeVolumesGrid');
+        const inactiveGrid = document.getElementById('inactiveVolumesGrid');
+        const gridHeader = document.getElementById('gridHeader'); // Keep this for the active volumes header
+
+        if (!foundAny && query !== '') {
+            noResults.style.display = 'block';
+            if (gridHeader) gridHeader.style.display = 'none'; // Hide active volumes header
+            if (activeGrid) activeGrid.style.display = 'none';
+            if (inactiveGrid) inactiveGrid.style.display = 'none';
+        } else {
+            noResults.style.display = 'none';
+            if (gridHeader) gridHeader.style.display = 'flex'; // Show active volumes header
+            if (activeGrid) activeGrid.style.display = 'grid';
+            if (inactiveGrid) inactiveGrid.style.display = 'grid';
+        }
+    }
+</script>
+{% endblock %}

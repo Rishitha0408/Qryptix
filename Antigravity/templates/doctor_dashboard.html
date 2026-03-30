@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 1000px; margin-top: 2rem;">
+    <h2><i class="fa-solid fa-user-doctor text-gradient"></i> Doctor Workspace</h2>
+    <p style="color: var(--text-muted);">Welcome, Dr. {{ user.username }}. Protected domain for medical biometrics.</p>
+
+    <!-- Create Folder Section -->
+    <div class="glass-panel action-panel form-container" style="max-width: 100%;">
+        <h3><i class="fa-solid fa-folder-plus"></i> Initialize Secure Folder</h3>
+        <form method="POST" action="{{ url_for('create_folder') }}" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div class="form-group" style="flex: 1; min-width: 250px;">
+                <input type="text" name="folder_name" class="form-control" required placeholder="Patient/Project Name">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 250px;">
+                <input type="password" name="folder_password" class="form-control" required
+                    placeholder="Folder Access Password">
+            </div>
+            <button type="submit" class="btn btn-primary" style="align-self: flex-start;">Create Secure Volume</button>
+        </form>
+    </div>
+
+    <!-- Folders Grid -->
+    <h3><i class="fa-solid fa-vault"></i> Your Encrypted Volumes</h3>
+    {% if folders %}
+    <div class="dashboard-grid">
+        {% for folder in folders %}
+        <div class="glass-panel card">
+            <h3><i class="fa-solid fa-folder-closed text-gradient"></i> {{ folder.name }}</h3>
+            <p>Created: {{ folder.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+
+            <form method="POST" action="{{ url_for('verify_folder_access', folder_id=folder.id) }}">
+                <div class="form-group">
+                    <input type="password" name="folder_password" class="form-control" placeholder="Decrypt to Access"
+                        required style="padding: 0.5rem; font-size: 0.9rem;">
+                </div>
+                <button type="submit" class="btn btn-outline btn-block"
+                    style="padding: 0.5rem; font-size: 0.9rem;">Unlock Folder</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p
+        style="color: var(--text-muted); text-align: center; padding: 2rem; border: 1px dashed var(--border-color); border-radius: 8px;">
+        No secure folders found. Initialize one above.</p>
+    {% endif %}
+</div>
+{% endblock %}

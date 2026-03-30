@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 1100px; margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2><i class="fa-solid fa-folder-open text-gradient"></i> {{ folder.name }}</h2>
+        <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back
+            to Vault</a>
+    </div>
+
+    <!-- Upload Panel -->
+    <div class="glass-panel action-panel form-container"
+        style="max-width: 100%; background: rgba(0, 198, 255, 0.05); border: 1px dashed var(--accent-color);">
+        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-cloud-arrow-up"></i> Bulk Secure Encrypt & Upload</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Upload medical images (retinal
+            biometrics). They will be processed through the dynamic Quantum Key generator and AES-encrypted
+            instantaneously.</p>
+
+        <form method="POST" action="{{ url_for('upload_images', folder_id=folder.id) }}" enctype="multipart/form-data"
+            id="upload-form">
+            <div class="drop-zone" id="drop-zone">
+                <span class="drop-zone__prompt">
+                    <i class="fa-solid fa-cloud-arrow-up"></i><br>
+                    <strong>Drag and Drop Files or Folders</strong><br>
+                    <span style="font-size: 0.85rem; opacity: 0.8;">Or click to select multiple files</span>
+                </span>
+                <input type="file" name="images" id="file-input" class="drop-zone__input" multiple accept="image/*">
+            </div>
+
+            <div id="file-count" class="file-info" style="display: none; text-align: center; margin-bottom: 1rem;">
+                <i class="fa-solid fa-check-circle"></i> <span id="count-text">0</span> files selected for encryption.
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="align-self: center; width: 250px;"><i
+                    class="fa-solid fa-lock"></i> Encrypt and Store</button>
+        </form>
+
+        <script>
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const fileCountDiv = document.getElementById('file-count');
+            const countText = document.getElementById('count-text');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', () => {
+                updateFileCount();
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drop-zone--over');
+            });
+
+            ['dragleave', 'dragend'].forEach(type => {
+                dropZone.addEventListener(type, () => {
+                    dropZone.classList.remove('drop-zone--over');
+                });
+            });
+
+            dropZone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drop-zone--over');
+
+                const items = e.dataTransfer.items;
+                const dataTransfer = new DataTransfer();
+
+                if (items) {
+                    // Use DataTransferItemList interface to access the file(s)
+                    const promises = [];
+                    for (let i = 0; i < items.length; i++) {
+                        const item = items[i].webkitGetAsEntry();
+                        if (item) {
+                            promises.push(traverseFileTree(item, dataTransfer));
+                        }
+                    }
+                    await Promise.all(promises);
+                    fileInput.files = dataTransfer.files;
+                    updateFileCount();
+                } else {
+                    // Use DataTransfer interface to access the file(s)
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        updateFileCount();
+                    }
+                }
+            });
+
+            async function traverseFileTree(item, dataTransfer, path = "") {
+                if (item.isFile) {
+                    // Get file
+                    const file = await new Promise((resolve) => item.file(resolve));
+                    // Only accept images
+                    if (file.type.startsWith('image/')) {
+                        dataTransfer.items.add(file);
+                    }
+                } else if (item.isDirectory) {
+                    // Get folder contents
+                    const dirReader = item.createReader();
+                    const entries = await new Promise((resolve) => dirReader.readEntries(resolve));
+                    for (let i = 0; i < entries.length; i++) {
+                        await traverseFileTree(entries[i], dataTransfer, path + item.name + "/");
+                    }
+                }
+            }
+
+            function updateFileCount() {
+                const count = fileInput.files.length;
+                if (count > 0) {
+                    fileCountDiv.style.display = 'block';
+                    countText.textContent = count;
+                    dropZone.style.borderColor = 'var(--success-color)';
+                } else {
+                    fileCountDiv.style.display = 'none';
+                    dropZone.style.borderColor = 'var(--border-color)';
+                }
+            }
+        </script>
+    </div>
+
+    <!-- Encrypted Images -->
+    <h3><i class="fa-solid fa-database"></i> Encrypted Records</h3>
+    {% if images %}
+    <table>
+        <thead>
+            <tr>
+                <th>Original Filename</th>
+                <th>Date Stored</th>
+                <th>Protocol Used</th>
+                <th>Key Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for img in images %}
+            <tr>
+                <td><i class="fa-regular fa-image" style="color: var(--text-muted);"></i> {{ img.original_filename }}
+                </td>
+                <td>{{ img.uploaded_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td><span class="badge badge-qkd">{{ img.qkd_protocol_used }}</span></td>
+                <td><span style="color: var(--success-color);"><i class="fa-solid fa-key"></i> Isolated & Active</span>
+                </td>
+                <td>
+                    <a href="{{ url_for('download_image', folder_id=folder.id, image_id=img.id) }}"
+                        class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i
+                            class="fa-solid fa-download"></i> Decrypt & Download</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p
+        style="color: var(--text-muted); text-align: center; padding: 2rem; border: 1px dashed var(--border-color); border-radius: 8px;">
+        No images in this folder yet.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

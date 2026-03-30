@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="glass-panel form-container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <i class="fa-solid fa-atom fa-3x text-gradient" style="margin-bottom: 1rem;"></i>
+        <h2 style="margin-bottom: 0.5rem;">Secure <span class="text-gradient">Access</span></h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Portal for doctors and system administrators.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="username"><i class="fa-solid fa-user"></i> Username</label>
+            <input type="text" id="username" name="username" class="form-control" required
+                placeholder="Enter your username">
+        </div>
+        <div class="form-group">
+            <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+            <input type="password" id="password" name="password" class="form-control" required
+                placeholder="Enter your password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem; font-weight: 600;">
+            Authenticate Access &nbsp;<i class="fa-solid fa-shield-check"></i>
+        </button>
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <p style="font-size: 0.85rem; color: var(--text-muted)">
+                New medical collaborator? <a href="{{ url_for('register') }}"
+                    style="color: var(--primary-color);">Initialize Registration</a>
+            </p>
+        </div>
+    </form>
+</div>
+{% endblock %}

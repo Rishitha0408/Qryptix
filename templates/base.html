@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qryptix Retinal Vault</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-atom text-gradient"></i>
+            <span class="text-gradient">Qryptix</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            {% if user %}
+            {% if user.role == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+            {% elif user.role == 'doctor' %}
+            <a href="{{ url_for('doctor_dashboard') }}">My Workspace</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="btn-outline"
+                style="padding: 0.5rem 1rem; border-radius: 4px;">Logout</a>
+            {% else %}
+            <a href="{{ url_for('login') }}">Access Portal</a>
+            <a href="{{ url_for('register') }}" class="btn-primary"
+                style="padding: 0.5rem 1rem; border-radius: 4px;">Join Team</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="glass-panel flash-message flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero">
+    <h1>Dynamic <span class="text-gradient">Quantum Key</span> Selection for Post-Quantum Encryption</h1>
+    <p>A secure web-based system designed to protect sensitive retinal and medical biometric images using dynamic QKD
+        strategies (BB84, CASCADE, DPS) combined with post-quantum cryptography. Authorized and government-verified
+        access only.</p>
+
+    <div>
+        <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-right: 1rem;">
+            <i class="fa-solid fa-user-doctor"></i> Doctor Registration
+        </a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline">
+            <i class="fa-solid fa-lock"></i> Secure Portal Login
+        </a>
+    </div>
+
+    <div class="feature-list">
+        <div class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-key"></i></div>
+            <h3>Dynamic QKD</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Protocol toggles automatically between BB84, CASCADE,
+                DPS based on channel stability.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3>Encryption</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">High-grade post-quantum cryptography securing images
+                seamlessly.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-id-card-clip"></i></div>
+            <h3>Govt Validation</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Exclusive portal validating licenses with the
+                national database before access.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

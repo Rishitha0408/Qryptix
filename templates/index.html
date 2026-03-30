@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero">
+    <h1>Purely <span class="text-gradient">Quantum Cryptography</span> powered by Qryptix</h1>
+    <p>A high-performance medical workspace for retinal bio-scans. Utilizing dynamic QKD
+        protocols (BB84, CASCADE, DPS) for unbreakable data security. Trusted by government-verified medical teams.</p>
+
+    <div>
+        <a href="{{ url_for('login') }}" class="btn btn-primary" style="margin-right: 1rem;">
+            <i class="fa-solid fa-right-to-bracket"></i> Access Portal
+        </a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline">
+            <i class="fa-solid fa-user-plus"></i> Join Medical Team
+        </a>
+    </div>
+
+    <div class="feature-list">
+        <div class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-key"></i></div>
+            <h3>Dynamic QKD</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Protocol toggles automatically between BB84, CASCADE,
+                DPS based on channel stability.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3>Retinal Encryption</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Purely quantum-safe processing
+                for high-resolution retinal data.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon"><i class="fa-solid fa-download"></i></div>
+            <h3>Secure Exports</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Download encrypted raw data paired with isolated
+                quantum secret key files.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
