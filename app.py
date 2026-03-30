@@ -62,6 +62,21 @@ os.makedirs(app.config['SECURE_FOLDERS'], exist_ok=True)
 
 with app.app_context():
     db.create_all()
+    
+    # Auto-migration: Ensure state_medical_council column exists (Helps with Vercel/Neon deployment)
+    try:
+        from sqlalchemy import text
+        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS state_medical_council VARCHAR(100)'))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        # Fallback for SQLite which doesn't support 'IF NOT EXISTS' in ALTER TABLE
+        try:
+            db.session.execute(text('ALTER TABLE "user" ADD COLUMN state_medical_council VARCHAR(100)'))
+            db.session.commit()
+        except:
+            db.session.rollback()
+
     # Create an admin user if it doesn't exist
     if not User.query.filter_by(username='admin').first():
         hashed_password = generate_password_hash('admin123')
