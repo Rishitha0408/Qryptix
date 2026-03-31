@@ -44,25 +44,88 @@
             <form id="upload-form" method="POST" action="{{ url_for('upload_images', folder_id=folder.id) }}"
                 enctype="multipart/form-data">
                 <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; align-items: center;">
-                    <label class="btn btn-primary"
+                    <label class="btn btn-outline"
                         style="cursor: pointer; min-width: 200px; padding: 1rem; border-radius: 50px;">
-                        <i class="fa-solid fa-images"></i> &nbsp;Choose Images
-                        <input type="file" name="images" multiple accept="image/*" style="display: none;"
-                            onchange="this.form.submit()">
+                        <i class="fa-solid fa-images"></i> &nbsp;Select Biometrics
+                        <input type="file" id="image-input" name="images" multiple accept="image/*"
+                            style="display: none;">
                     </label>
                     <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: 800;">OR</span>
                     <label class="btn btn-outline"
                         style="cursor: pointer; min-width: 200px; padding: 1rem; border-radius: 50px;">
                         <i class="fa-solid fa-folder-tree"></i> &nbsp;Upload Folder
-                        <input type="file" name="images" webkitdirectory directory multiple style="display: none;"
-                            onchange="this.form.submit()">
+                        <input type="file" id="folder-input" name="images" webkitdirectory directory multiple
+                            style="display: none;">
                     </label>
+                </div>
+
+                <div id="preview-container"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; margin-top: 2rem;">
+                    <!-- Thumbnails will appear here -->
+                </div>
+
+                <div id="upload-actions" style="margin-top: 2rem; display: none;">
+                    <button type="submit" id="encrypt-btn" class="btn btn-primary"
+                        style="padding: 1rem 2.5rem; border-radius: 50px; font-weight: 700; font-size: 1.1rem; box-shadow: 0 0 20px rgba(0, 198, 255, 0.4);">
+                        <i class="fa-solid fa-lock"></i> &nbsp;Encrypt & Secure via QKD
+                    </button>
+                    <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--warning-color);">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Ready to initiate Purely Quantum Cryptography.
+                    </p>
                 </div>
             </form>
             <div id="file-count"
                 style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--accent-color); font-weight: 600;"></div>
         </div>
     </div>
+
+    <script>
+        const imageInput = document.getElementById('image-input');
+        const folderInput = document.getElementById('folder-input');
+        const previewContainer = document.getElementById('preview-container');
+        const uploadActions = document.getElementById('upload-actions');
+        const fileCount = document.getElementById('file-count');
+
+        const handleFiles = (files) => {
+            previewContainer.innerHTML = '';
+            if (files.length > 0) {
+                uploadActions.style.display = 'block';
+                fileCount.innerText = `${files.length} biometric files prepared for encryption.`;
+
+                // Show first 10 previews
+                const maxPreviews = 10;
+                Array.from(files).slice(0, maxPreviews).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.style.height = '100px';
+                        div.style.borderRadius = '8px';
+                        div.style.overflow = 'hidden';
+                        div.style.border = '1px solid rgba(255,255,255,0.1)';
+                        div.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">`;
+                        previewContainer.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+                if (files.length > maxPreviews) {
+                    const more = document.createElement('div');
+                    more.style.display = 'flex';
+                    more.style.alignItems = 'center';
+                    more.style.justifyContent = 'center';
+                    more.style.background = 'rgba(255,255,255,0.05)';
+                    more.style.borderRadius = '8px';
+                    more.innerText = `+${files.length - maxPreviews}`;
+                    previewContainer.appendChild(more);
+                }
+            } else {
+                uploadActions.style.display = 'none';
+                fileCount.innerText = '';
+            }
+        };
+
+        imageInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        folderInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    </script>
     {% endif %}
 
     <!-- Encrypted Images -->
