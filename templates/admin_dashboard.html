@@ -13,6 +13,8 @@
         <h4
             style="margin-bottom: 1.2rem; color: var(--accent-color); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
             <i class="fa-solid fa-file-shield"></i> Advanced Verification Search
+            <span id="resultsCount"
+                style="float: right; font-size: 0.8rem; background: rgba(0, 163, 255, 0.1); padding: 0.2rem 0.6rem; border-radius: 20px; color: var(--accent-color); display: none;"></span>
         </h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <div class="form-group" style="margin-bottom: 0;">
@@ -162,12 +164,13 @@
 
         const rows = document.querySelectorAll('.doctor-row');
         let foundAny = false;
+        let totalMatches = 0;
 
         rows.forEach(row => {
-            const name = row.dataset.name.toLowerCase();
-            const licenseId = row.dataset.id.toLowerCase();
-            const year = row.dataset.year.toLowerCase();
-            const council = row.dataset.council.toLowerCase();
+            const name = (row.dataset.name || "").toLowerCase();
+            const licenseId = (row.dataset.id || "").toLowerCase();
+            const year = (row.dataset.year || "").toLowerCase();
+            const council = (row.dataset.council || "").toLowerCase();
 
             const matchesName = nameQuery === '' || name.includes(nameQuery);
             const matchesReg = regQuery === '' || licenseId.includes(regQuery);
@@ -176,16 +179,26 @@
 
             if (matchesName && matchesReg && matchesYear && matchesCouncil) {
                 row.style.display = '';
+                row.style.animation = 'fadeIn 0.3s ease forwards';
                 foundAny = true;
+                totalMatches++;
             } else {
                 row.style.display = 'none';
             }
         });
 
-        // Handle section visibility
+        // Handle section visibility and status
         const noResults = document.getElementById('noResults');
+        const resultsCountEl = document.getElementById('resultsCount');
         const sections = document.querySelectorAll('.clearance-container');
         const isSearching = nameQuery !== '' || regQuery !== '' || yearQuery !== '' || councilQuery !== '';
+
+        if (isSearching) {
+            resultsCountEl.style.display = 'inline';
+            resultsCountEl.innerText = `${totalMatches} matching record${totalMatches !== 1 ? 's' : ''}`;
+        } else {
+            resultsCountEl.style.display = 'none';
+        }
 
         if (!foundAny && isSearching) {
             noResults.style.display = 'block';
@@ -194,7 +207,28 @@
             noResults.style.display = 'none';
             sections.forEach(s => s.style.display = 'block');
         }
+
+        // Hide empty tables within sections if needed
+        sections.forEach(section => {
+            const visibleRows = section.querySelectorAll('.doctor-row:not([style*="display: none"])');
+            if (visibleRows.length === 0 && isSearching) {
+                section.style.opacity = '0.4';
+            } else {
+                section.style.opacity = '1';
+            }
+        });
     }
+
+    // Add CSS for fade integration
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .doctor-row { transition: all 0.3s ease; }
+    `;
+    document.head.appendChild(style);
 </script>
 </div>
 {% endblock %}
