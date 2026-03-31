@@ -110,6 +110,15 @@ def inject_user():
 def health():
     return "Qryptix Portal Status: ONLINE", 200
 
+@app.route('/reset_vault_dangerous_xyz')
+def reset_db():
+    try:
+        db.drop_all()
+        db.create_all()
+        return "DATABASE RESET COMPLETE. All tables recreated.", 200
+    except Exception as e:
+        return f"Database Reset Error: {e}", 500
+
 # --- Decorators for Standard Session Authorization ---
 def login_required(f):
     @wraps(f)
