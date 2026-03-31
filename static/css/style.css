@@ -201,6 +201,14 @@ a:hover {
     box-shadow: 0 0 0 3px rgba(0, 198, 255, 0.2);
 }
 
+/* Fix for Select Dropdown Visibility */
+select.form-control option {
+    background-color: #1a1e2a;
+    /* Dark background to make white text visible */
+    color: var(--text-color);
+    padding: 1rem;
+}
+
 /* Buttons */
 .btn {
     display: inline-block;
