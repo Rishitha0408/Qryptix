@@ -124,7 +124,14 @@ def reset_db():
     try:
         db.drop_all()
         db.create_all()
-        return "DATABASE RESET COMPLETE. All tables recreated.", 200
+        
+        # Explicitly recreate the admin user immediately
+        hashed_password = generate_password_hash('admin123')
+        admin_user = User(username='admin', email='admin@qryptix.com', password=hashed_password, role='admin', is_approved=True, is_license_valid=True)
+        db.session.add(admin_user)
+        db.session.commit()
+        
+        return "DATABASE RESET COMPLETE. Admin account 'admin/admin123' recreated.", 200
     except Exception as e:
         return f"Database Reset Error: {e}", 500
 
