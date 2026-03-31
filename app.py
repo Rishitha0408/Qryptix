@@ -138,6 +138,11 @@ def mock_govt_verification(license_id):
         return True
     return False
 
+@app.errorhandler(500)
+def internal_error(error):
+    import traceback
+    return f"<h1>Internal Server Error (500)</h1><p>Detailed Error: {error}</p><pre>{traceback.format_exc()}</pre>", 500
+
 # --- Routes ---
 @app.route('/')
 def index():

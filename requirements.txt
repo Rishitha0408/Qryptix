@@ -2,5 +2,6 @@ flask
 flask-sqlalchemy
 cryptography
 flask-limiter
-psycopg2-binary
+psycopg2
+SQLAlchemy
 gunicorn
