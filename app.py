@@ -18,9 +18,17 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SECRET_KEY'] = 'SuperSecretKey_QKD_PQE_Qryptix_2026'
 
+# Custom Remote Address Helper for Vercel
+def get_user_ip():
+    # Vercel and other proxies use X-Forwarded-For to pass the real client IP
+    x_forwarded_for = request.headers.get('X-Forwarded-For')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return get_remote_address()
+
 # Rate Limiting Configuration
 limiter = Limiter(
-    get_remote_address,
+    key_func=get_user_ip,
     app=app,
     default_limits=["200 per day", "50 per hour"],
     storage_uri="memory://",
@@ -219,7 +227,7 @@ def register():
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
