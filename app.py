@@ -27,8 +27,15 @@ limiter = Limiter(
 )
 
 # Admin Audit Logging Configuration
-logging.basicConfig(filename='admin_approvals.log', level=logging.INFO, 
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+if os.environ.get('VERCEL') == '1':
+    # On Vercel, log to stdout/stderr (standard practice)
+    logging.basicConfig(level=logging.INFO, 
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+    print("Vercel environment detected. Logging to console.")
+else:
+    # Local development: keep file logging
+    logging.basicConfig(filename='admin_approvals.log', level=logging.INFO, 
+                        format='%(asctime)s - %(levelname)s - %(message)s')
 
 # --- Permanent Postgres Configuration for Vercel ---
 if os.environ.get('VERCEL') == '1':
@@ -61,28 +68,32 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['SECURE_FOLDERS'], exist_ok=True)
 
 with app.app_context():
-    db.create_all()
-    
-    # Auto-migration: Ensure state_medical_council column exists (Helps with Vercel/Neon deployment)
     try:
-        from sqlalchemy import text
-        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS state_medical_council VARCHAR(100)'))
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        # Fallback for SQLite which doesn't support 'IF NOT EXISTS' in ALTER TABLE
+        db.create_all()
+        
+        # Auto-migration: Ensure state_medical_council column exists (Helps with Vercel/Neon deployment)
         try:
-            db.session.execute(text('ALTER TABLE "user" ADD COLUMN state_medical_council VARCHAR(100)'))
+            from sqlalchemy import text
+            db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS state_medical_council VARCHAR(100)'))
             db.session.commit()
-        except:
+        except Exception as e:
             db.session.rollback()
+            # Fallback for SQLite which doesn't support 'IF NOT EXISTS' in ALTER TABLE
+            try:
+                db.session.execute(text('ALTER TABLE "user" ADD COLUMN state_medical_council VARCHAR(100)'))
+                db.session.commit()
+            except:
+                db.session.rollback()
 
-    # Create an admin user if it doesn't exist
-    if not User.query.filter_by(username='admin').first():
-        hashed_password = generate_password_hash('admin123')
-        admin_user = User(username='admin', email='admin@qryptix.com', password=hashed_password, role='admin', is_approved=True, is_license_valid=True)
-        db.session.add(admin_user)
-        db.session.commit()
+        # Create an admin user if it doesn't exist
+        if not User.query.filter_by(username='admin').first():
+            hashed_password = generate_password_hash('admin123')
+            admin_user = User(username='admin', email='admin@qryptix.com', password=hashed_password, role='admin', is_approved=True, is_license_valid=True)
+            db.session.add(admin_user)
+            db.session.commit()
+    except Exception as startup_err:
+        print(f"CRITICAL: Startup database error: {startup_err}")
+        # We don't crash the whole app here so the user can at least see a 500 error or similar instead of a hard crash
 
 # --- Context Processor ---
 @app.context_processor
