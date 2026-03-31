@@ -99,9 +99,16 @@ with app.app_context():
 @app.context_processor
 def inject_user():
     user = None
-    if 'user_id' in session:
-        user = User.query.get(session['user_id'])
+    try:
+        if 'user_id' in session:
+            user = User.query.get(session['user_id'])
+    except Exception as e:
+        print(f"Context Processor Error: {e}")
     return dict(user=user)
+
+@app.route('/health')
+def health():
+    return "Qryptix Portal Status: ONLINE", 200
 
 # --- Decorators for Standard Session Authorization ---
 def login_required(f):
