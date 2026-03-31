@@ -71,19 +71,28 @@ with app.app_context():
     try:
         db.create_all()
         
-        # Auto-migration: Ensure state_medical_council column exists (Helps with Vercel/Neon deployment)
+        # Auto-migration: Ensure all required columns exist (Helps with Vercel/Neon deployment)
         try:
             from sqlalchemy import text
-            db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS state_medical_council VARCHAR(100)'))
+            columns_to_add = [
+                ('full_name', 'VARCHAR(100)'),
+                ('mobile_number', 'VARCHAR(15)'),
+                ('registration_year', 'INTEGER'),
+                ('state_medical_council', 'VARCHAR(100)')
+            ]
+            for col_name, col_type in columns_to_add:
+                try:
+                    db.session.execute(text(f'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS {col_name} {col_type}'))
+                except Exception:
+                    # Fallback for SQLite or if IF NOT EXISTS fails
+                    try:
+                        db.session.execute(text(f'ALTER TABLE "user" ADD COLUMN {col_name} {col_type}'))
+                    except:
+                        pass
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            # Fallback for SQLite which doesn't support 'IF NOT EXISTS' in ALTER TABLE
-            try:
-                db.session.execute(text('ALTER TABLE "user" ADD COLUMN state_medical_council VARCHAR(100)'))
-                db.session.commit()
-            except:
-                db.session.rollback()
+            print(f"Migration Error: {e}")
 
         # Create an admin user if it doesn't exist
         if not User.query.filter_by(username='admin').first():
