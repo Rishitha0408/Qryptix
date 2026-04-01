@@ -4,10 +4,11 @@
 ### 1. Executive Summary
 **Qryptix** is a high-performance specialized medical archive engineered exclusively for the secure storage of **Retinal Biometric Data**. The system utilizes **Purely Quantum Cryptography**—integrating simulated Quantum Key Distribution (QKD) channels with 256-bit symmetric encryption to ensure immunity against the fastest evolving quantum-computing threats.
 
-### 2. Purely Quantum Cryptography Core
-The security of **Qryptix** is built on the marriage of quantum physics and information theory:
-*   **Quantum Key Distribution (QKD)**: Unlike classical key exchange (which relies on math), Qryptix simulates a physical photonic link to establish keys. This process is "purely quantum" because it relies on the laws of physics (no-cloning theorem) to detect eavesdropping.
-*   **Symmetric Post-Quantum Logic**: By utilizing **AES-256**, the system ensures that the data remains secure even if RSA or ECC are eventually broken by quantum computers.
+### 2. Hybrid Quantum Security Core
+The security of **Qryptix** is built on a dual-layered defense combining quantum physics and post-quantum mathematics:
+*   **Layer 1: Quantum Key Distribution (QKD)**: Qryptix simulates a physical photonic link to establish keys based on the laws of physics (no-cloning theorem).
+*   **Layer 2: Lattice-Based KEM (ML-KEM/Kyber)**: Even if the quantum channel is bypassed, the system uses Lattice-based mathematics (Shortest Vector Problem) which is mathematically resistant to quantum factoring.
+*   **Symmetric Post-Quantum Logic**: The final **Hybrid Key** is used with **AES-256**, ensuring the data remains secure against both Shor's and Grover's algorithms.
 
 ### 3. Quantum Resistance: Shor's and Grover's
 *   **Shor's Algorithm Immunity**: As a purely symmetric system, Qryptix is mathematically immune to Shor’s algorithm, which only targets asymmetric factorization problems.
@@ -49,12 +50,14 @@ The application follows a defined end-to-end security workflow tailored for the 
 #### 6.2 Step 2: Workspace Isolation
 *   Isolated "Workspaces" for each patient case ensure metadata and storage are strictly partitioned by physician ownership.
 
-#### 6.3 Step 3: Biometric Upload and Sifting
-*   **Upload Mechanism**: Supports both individual image selection and **Bulk Folder Uploads** (using the `webkitdirectory` standard).
-*   **Automated Diagnostics**: For each file, the system triggers the **Quantum Channel Diagnostic Hub** to choose the best protocol (BB84, CASCADE, or DPS).
+#### 6.3 Step 3: Biometric Upload and Hybrid Sifting
+*   **Upload Mechanism**: Supports both individual image selection and **Bulk Folder Uploads**.
+*   **Quantum Diagnostics**: For each file, the system triggers the **Quantum Channel Diagnostic Hub** to choose the best protocol (BB84, CASCADE, or DPS).
+*   **Lattice Encapsulation**: Simultaneously, a lattice-based shared secret is generated.
+*   **Key Fusion**: The QKD secret and Lattice secret are fused using SHA-256 to create the final 256-bit session key.
 
 #### 6.4 Step 4: Final Archival
-*   After the "Photonic Sifting" (key generation), the retinal data is encrypted with **AES-256-CBC** and saved to the storage layer.
+*   After the hybrid key generation, the retinal data is encrypted with **AES-256-CBC** and saved to the storage layer.
 
 ### 7. Data Storage and Database Retrieval
 

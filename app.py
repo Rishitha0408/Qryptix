@@ -12,7 +12,7 @@ from functools import wraps
 import logging
 
 from models import db, User, Folder, MedicalImage
-from qkd_simulator import get_quantum_channel_diagnostics, select_qkd_protocol, generate_quantum_key, encrypt_data
+from qkd_simulator import get_quantum_channel_diagnostics, select_qkd_protocol, generate_hybrid_quantum_key, encrypt_data
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -194,7 +194,7 @@ def register():
         license_id = request.form.get('license_id')
 
         if User.query.filter_by(username=username).first():
-            flash("Username already exists in Qryptix registry.", "danger")
+            flash("Username already exists", "danger")
             return redirect(url_for('register'))
 
         if User.query.filter_by(email=email).first():
@@ -202,7 +202,7 @@ def register():
             return redirect(url_for('register'))
 
         if User.query.filter_by(license_id=license_id).first():
-            flash("License ID already registered for another member.", "danger")
+            flash("License ID already registered", "danger")
             return redirect(url_for('register'))
 
         hashed_password = generate_password_hash(password)
@@ -221,7 +221,7 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
-        flash("Qryptix registration successful! System stored as unverified + unapproved. Portal access pending admin clearance.", "success")
+        flash("Qryptix registration successful! Portal access pending admin clearance.", "success")
         return redirect(url_for('login'))
 
     return render_template('register.html')
@@ -241,7 +241,7 @@ def login():
                     return redirect(url_for('login'))
                 
             session['user_id'] = user.id
-            flash(f"Welcome back to Qryptix Retinal Vault, {user.username}.", "success")
+            flash(f"Welcome back to Qryptix, {user.username}.", "success")
             
             if user.role == 'admin':
                 return redirect(url_for('admin_dashboard'))
@@ -386,7 +386,7 @@ def upload_images(current_user, folder_id):
             if 'CASCADE' in protocol: upload_stats['CASCADE'] += 1
             if 'DPS' in protocol: upload_stats['DPS'] += 1
             
-            key = generate_quantum_key(protocol)
+            key = generate_hybrid_quantum_key(protocol)
             encrypted_data = encrypt_data(file_data, key)
             
             base_name, _ = os.path.splitext(filename)

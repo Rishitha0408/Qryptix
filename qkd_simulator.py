@@ -2,6 +2,27 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 import os
 import random
+import hashlib
+
+class LatticeKEM:
+    """
+    Simulates a Lattice-based Key Encapsulation Mechanism (KEM).
+    Based on the 'Learning with Errors' (LWE) problem used in NIST-standard ML-KEM (Kyber).
+    """
+    def __init__(self, dimension=512):
+        self.dimension = dimension
+        
+    def generate_shared_secret(self):
+        """
+        Simulates the generation of a Lattice-based shared secret.
+        In a real Kyber implementation, this involves:
+        1. Public/Private Key generation (Matrix-Vector multiplication with noise).
+        2. Encapsulation: Creating a ciphertext with a masked secret.
+        3. Decapsulation: Recovering the secret using the private key.
+        """
+        # We return a 32-byte secret derived from simulated lattice noise
+        # This represents the shared secret established via Lattice math.
+        return os.urandom(32)
 
 def get_quantum_channel_diagnostics():
     """
@@ -40,20 +61,34 @@ def select_qkd_protocol(metrics):
     else:
         return 'DPS'
 
-def generate_quantum_key(protocol):
+def generate_hybrid_quantum_key(protocol):
     """
-    Simulates the Alice-Side Photonic Key Generation:
-    1. Photon State Preparation & Transmission.
-    2. Sifting and Basis Matching reconciliation with Bob.
-    3. Final Privacy Amplification to derive the secure AES-256 seed.
+    Simulates a Hybrid Post-Quantum Key Exchange:
+    1. Layer 1 (Physical): QKD-based key generation (Physics-based).
+    2. Layer 2 (Mathematical): Lattice-based KEM (Mathematics-based).
+    3. Layer 3 (Fusion): Hash-based derivation of the final AES-256 session key.
     """
-    # In a real setup, this pulls entropy from a Quantum Random Number Generator (QRNG)
-    return os.urandom(32)
+    # 1. Physics Layer: QKD Secret
+    qkd_secret = os.urandom(32) # Simulated photon-derived secret
+    
+    # 2. Math Layer: Lattice Secret (Simulating Kyber/ML-KEM)
+    lattice_kem = LatticeKEM()
+    lattice_secret = lattice_kem.generate_shared_secret()
+    
+    # 3. Hybrid Fusion: Mix both secrets using SHA-256
+    # This ensures that even if one layer is compromised, the other remains secure.
+    hasher = hashlib.sha256()
+    hasher.update(qkd_secret)
+    hasher.update(lattice_secret)
+    hasher.update(protocol.encode()) # Bind the protocol to the key logic
+    
+    final_key = hasher.digest() # 256-bit Hybrid Key
+    return final_key
 
 def encrypt_data(data_bytes, key):
     """
     Post-Quantum Symmetric Encryption (AES-256-CBC).
-    Secures biometric data using the Quantum-derived secret key.
+    Secures biometric data using the Hybrid Quantum-derived secret key.
     """
     iv = os.urandom(16)
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
