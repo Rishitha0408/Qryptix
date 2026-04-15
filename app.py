@@ -11,7 +11,7 @@ from datetime import datetime
 from functools import wraps
 import logging
 
-from models import db, User, Folder, MedicalImage
+from models import db, User, Folder, MedicalImage, VerificationSource
 from qkd_simulator import get_quantum_channel_diagnostics, select_qkd_protocol, generate_hybrid_quantum_key, encrypt_data
 
 app = Flask(__name__)
@@ -82,21 +82,25 @@ with app.app_context():
         # Auto-migration: Ensure all required columns exist (Helps with Vercel/Neon deployment)
         try:
             from sqlalchemy import text
+            # Format: (table_name, column_name, column_type)
             columns_to_add = [
-                ('full_name', 'VARCHAR(100)'),
-                ('mobile_number', 'VARCHAR(15)'),
-                ('registration_year', 'INTEGER'),
-                ('state_medical_council', 'VARCHAR(100)')
+                ('user', 'full_name', 'VARCHAR(100)'),
+                ('user', 'mobile_number', 'VARCHAR(15)'),
+                ('user', 'registration_year', 'INTEGER'),
+                ('user', 'state_medical_council', 'VARCHAR(100)'),
+                ('medical_image', 'lattice_hash', 'VARCHAR(16)'),
+                ('medical_image', 'fusion_id', 'VARCHAR(16)')
             ]
-            for col_name, col_type in columns_to_add:
+            for table_name, col_name, col_type in columns_to_add:
                 try:
-                    db.session.execute(text(f'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS {col_name} {col_type}'))
-                except Exception:
-                    # Fallback for SQLite or if IF NOT EXISTS fails
+                    # Generic migration attempt
                     try:
-                        db.session.execute(text(f'ALTER TABLE "user" ADD COLUMN {col_name} {col_type}'))
-                    except:
+                        db.session.execute(text(f'ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}'))
+                    except Exception:
+                        # Potentially already exists or other error, ignore and continue
                         pass
+                except:
+                    pass
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -276,6 +280,75 @@ def verify_license(current_user, user_id):
     flash(f"Medical License for '{user.username}' marked as VALID.", "success")
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/api/search-excel')
+@login_required
+@admin_required
+def search_excel(current_user):
+    query = request.args.get('query', '').strip()
+    if not query:
+        return {"results": []}
+    
+    # Search by Name or ID
+    results = VerificationSource.query.filter(
+        (VerificationSource.doctor_name.ilike(f'%{query}%')) | 
+        (VerificationSource.doctor_id.ilike(f'%{query}%'))
+    ).all()
+    
+    return {
+        "results": [{
+            "doctor_id": r.doctor_id,
+            "doctor_name": r.doctor_name,
+            "registration_year": r.registration_year,
+            "email": r.email,
+            "state": r.state
+        } for r in results]
+    }
+
+@app.route('/admin/import-excel')
+@login_required
+@admin_required
+def import_excel_data(current_user):
+    import openpyxl
+    file_path = os.path.join(basedir, "dummy_doctors_updated (2).xlsx")
+    if not os.path.exists(file_path):
+        flash("Excel source file not found.", "danger")
+        return redirect(url_for('admin_dashboard'))
+    
+    try:
+        wb = openpyxl.load_workbook(file_path)
+        sheet = wb.active
+        headers = [cell.value for cell in sheet[1]]
+        
+        imported = 0
+        skipped = 0
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            data = dict(zip(headers, row))
+            doc_id = str(data.get('Doctor ID', '')).strip()
+            
+            if not doc_id:
+                continue
+                
+            if not VerificationSource.query.filter_by(doctor_id=doc_id).first():
+                new_entry = VerificationSource(
+                    doctor_id=doc_id,
+                    doctor_name=data.get('Doctor Name'),
+                    registration_year=str(data.get('Year of Registration')),
+                    mobile_number=str(data.get('SMC Mobile Number')),
+                    email=data.get('Email'),
+                    state=data.get('State')
+                )
+                db.session.add(new_entry)
+                imported += 1
+            else:
+                skipped += 1
+        
+        db.session.commit()
+        flash(f"Excel sync complete. {imported} new records added, {skipped} existing skipped.", "success")
+    except Exception as e:
+        flash(f"Excel Import Error: {str(e)}", "danger")
+        
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/approve/<int:user_id>')
 @login_required
 @admin_required
@@ -370,6 +443,7 @@ def upload_images(current_user, folder_id):
     folder_dir = os.path.join(app.config['SECURE_FOLDERS'], str(folder.id))
     os.makedirs(folder_dir, exist_ok=True)
 
+    latest_handshake = None
     for file in files:
         if file and file.filename:
             # When folders are uploaded, browsers send relative paths. Extract valid file extensions only.
@@ -386,7 +460,10 @@ def upload_images(current_user, folder_id):
             if 'CASCADE' in protocol: upload_stats['CASCADE'] += 1
             if 'DPS' in protocol: upload_stats['DPS'] += 1
             
-            key = generate_hybrid_quantum_key(protocol)
+            # Generate Hybrid Key (QKD + Lattice)
+            hybrid_data = generate_hybrid_quantum_key(protocol)
+            key = hybrid_data['key']
+            
             encrypted_data = encrypt_data(file_data, key)
             
             base_name, _ = os.path.splitext(filename)
@@ -404,14 +481,27 @@ def upload_images(current_user, folder_id):
                 original_filename=file.filename,
                 encrypted_image_path=enc_path,
                 key_path=key_path,
-                qkd_protocol_used=protocol
+                qkd_protocol_used=protocol,
+                lattice_hash=hybrid_data['qkd_hash'], # Actually qkd_hash for historical tracking
+                fusion_id=hybrid_data['fusion_id']
             )
+            # Re-map: lattice_hash should be lattice_hash
+            new_image.lattice_hash = hybrid_data['lattice_hash']
+            
             db.session.add(new_image)
             successful += 1
+            latest_handshake = {
+                'protocol': protocol,
+                'qkd_hash': hybrid_data['qkd_hash'],
+                'lattice_hash': hybrid_data['lattice_hash'],
+                'fusion_id': hybrid_data['fusion_id'],
+                'metrics': metrics
+            }
             
     db.session.commit()
     if successful > 0:
-        flash(f"Quantum Sequence Complete. {successful} retinal images secured via Purely Quantum Cryptography. Protocols used: BB84({upload_stats['BB84']}), CASCADE({upload_stats['CASCADE']}), DPS({upload_stats['DPS']})", "success")
+        session['last_handshake'] = latest_handshake
+        flash(f"Quantum Sequence Complete. {successful} retinal images secured via Hybrid (QKD + Lattice) Cryptography.", "success")
     else:
         flash("No valid medical images were found in the selection.", "warning")
     return redirect(url_for('folder_view', folder_id=folder_id))

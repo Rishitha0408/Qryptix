@@ -128,6 +128,49 @@
     </script>
     {% endif %}
 
+    {% if session.get('last_handshake') %}
+    <div class="glass-panel" style="margin-bottom: 2rem; border-left: 4px solid var(--accent-color); padding: 1.5rem;">
+        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+            <i class="fa-solid fa-code-branch fa-2x text-gradient"></i>
+            <h4 style="margin: 0;">Hybrid Post-Quantum Handshake Analysis</h4>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+            The system has successfully fused two independent security layers to generate a future-proof 256-bit
+            symmetric key.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                <div
+                    style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-color); margin-bottom: 0.5rem;">
+                    Layer 1: QKD (Physical)</div>
+                <div style="font-family: monospace; font-size: 0.9rem; color: #fff;">Protocol: {{
+                    session['last_handshake']['protocol'] }}</div>
+                <div style="font-family: monospace; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">
+                    QKD-Secret-Hash: {{ session['last_handshake']['qkd_hash'] }}...</div>
+            </div>
+            <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                <div
+                    style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #00ffcc; margin-bottom: 0.5rem;">
+                    Layer 2: Lattice (Kyber)</div>
+                <div style="font-family: monospace; font-size: 0.9rem; color: #fff;">Mechanism: ML-KEM</div>
+                <div style="font-family: monospace; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">
+                    Lattice-Secret-Hash: {{ session['last_handshake']['lattice_hash'] }}...</div>
+            </div>
+            <div
+                style="padding: 1rem; background: rgba(0, 198, 255, 0.1); border: 1px solid var(--accent-color); border-radius: 8px;">
+                <div
+                    style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 0.5rem;">
+                    Final Fusion: SHA-256</div>
+                <div style="font-family: monospace; font-size: 0.9rem; color: #fff;">Fusion ID: {{
+                    session['last_handshake']['fusion_id'] }}</div>
+                <div
+                    style="font-family: monospace; font-size: 0.65rem; color: var(--accent-color); margin-top: 0.3rem;">
+                    F(QKD_S || LAT_S || Prot) = K_AES256</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Encrypted Images -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h3 style="margin: 0;"><i class="fa-solid fa-database"></i> Biometric Records</h3>
@@ -143,7 +186,7 @@
         <thead>
             <tr>
                 <th>Original Filename</th>
-                <th>Date Stored</th>
+                <th>Security Layer (Hybrid)</th>
                 <th>Encryption Details</th>
                 <th>Encrypted Image</th>
                 <th>Secret Key</th>
@@ -153,24 +196,39 @@
             {% for img in images %}
             <tr>
                 <td><i class="fa-regular fa-image" style="color: var(--text-muted);"></i> {{ img.original_filename }}
+                    <br><small style="color: var(--text-muted); font-size: 0.7rem;">Stored: {{
+                        img.uploaded_at.strftime('%H:%M:%S') }}</small>
                 </td>
-                <td>{{ img.uploaded_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                 <td>
-                    <span class="badge badge-qkd" style="margin-bottom: 0.3rem; display: inline-block;">{{
-                        img.qkd_protocol_used }} QKD Protocol</span><br>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);"><i
-                            class="fa-solid fa-shield-halved"></i> AES-256 Symmetric Cryptography</span>
+                    <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                        <span class="badge badge-qkd" style="font-size: 10px; padding: 2px 6px;">QKD: {{
+                            img.qkd_protocol_used }}</span>
+                        <span class="badge"
+                            style="background: rgba(0,255,204,0.1); color: #00ffcc; border: 1px solid rgba(0,255,204,0.3); font-size: 10px; padding: 2px 6px;">KYBER:
+                            Lattice-KEM</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 0.75rem; line-height: 1.4;">
+                        <span style="color: var(--text-muted);">Fusion ID:</span> <code
+                            style="color: var(--accent-color);">{{ img.fusion_id or 'N/A' }}</code><br>
+                        <span style="color: var(--text-muted);">Lat Hash:</span> <code
+                            style="color: #00ffcc;">{{ img.lattice_hash or 'N/A' }}</code><br>
+                        <i class="fa-solid fa-shield-halved"
+                            style="font-size: 0.7rem; color: var(--success-color);"></i> <span
+                            style="font-size: 0.7rem;">AES-256-CBC</span>
+                    </div>
                 </td>
                 <td>
                     <a href="{{ url_for('download_encrypted', image_id=img.id) }}" class="btn btn-outline"
                         style="padding: 0.3rem 0.8rem; font-size: 0.8rem; border-color: var(--warning-color); color: var(--warning-color);">
-                        <i class="fa-solid fa-file-zipper"></i> Download .bin
+                        <i class="fa-solid fa-file-zipper"></i> .bin
                     </a>
                 </td>
                 <td>
                     <a href="{{ url_for('download_key', image_id=img.id) }}" class="btn btn-outline"
                         style="padding: 0.3rem 0.8rem; font-size: 0.8rem; border-color: var(--success-color); color: var(--success-color);">
-                        <i class="fa-solid fa-file-code"></i> Download .bin Key
+                        <i class="fa-solid fa-file-code"></i> .bin Key
                     </a>
                 </td>
             </tr>

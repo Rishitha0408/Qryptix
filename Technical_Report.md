@@ -66,7 +66,7 @@ The application follows a defined end-to-end security workflow tailored for the 
 *   **Key Layer**: Quantum Secret Keys are exported as independent `.bin` files for the doctor.
 
 #### 7.2 Database and Retrieval Logic
-QuantiBio Shield manages metadata using an **SQLAlchemy-based SQLite database** (`database_v2.db`) to track file paths, original filenames, and the specific **QKD Protocol** assigned to each retinal image.
+Qryptix manages metadata using an **SQLAlchemy-based SQLite database** (`database_v2.db`) to track file paths, original filenames, and the specific **QKD Protocol** assigned to each retinal image.
 
 ### 8. System Limitations
 *   **Simulation vs. Hardware**: The quantum channel (QBER, Pulsing) is currently simulated in Python.

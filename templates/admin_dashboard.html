@@ -111,6 +111,11 @@
                             style="padding: 0.3rem 0.6rem; font-size: 0.7rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-color);">
                             <i class="fa-solid fa-up-right-from-square"></i> Check NMC
                         </a>
+                        <button onclick="openExcelSearch(this.dataset.name, this.dataset.id)"
+                            data-name="{{ doc.full_name or doc.username }}" data-id="{{ doc.license_id }}" class="btn"
+                            style="padding: 0.3rem 0.6rem; font-size: 0.7rem; background: rgba(0, 255, 127, 0.1); border: 1px solid rgba(0, 255, 127, 0.2); color: #00ff7f; margin-top: 5px; display: block; width: 100%; text-align: left;">
+                            <i class="fa-solid fa-file-excel"></i> Check Excel
+                        </button>
                     </td>
                     <td>
                         {% if doc.is_license_valid %}
@@ -184,6 +189,37 @@
         <p style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No verified doctors yet.</p>
         {% endif %}
     </div>
+
+    <!-- Excel Verification Drawer (Quick Search) -->
+    <div id="excelDrawer" class="glass-panel"
+        style="display: none; position: fixed; top: 10%; right: 2rem; width: 400px; max-height: 80vh; z-index: 1000; border: 1px solid var(--accent-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <h4 style="color: #00ff7f; margin: 0; font-size: 1rem;"><i class="fa-solid fa-file-invoice"></i> Internal
+                Excel Source</h4>
+            <button onclick="closeExcelSearch()"
+                style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;"><i
+                    class="fa-solid fa-times"></i></button>
+        </div>
+        <div style="padding: 1rem;">
+            <div class="form-group">
+                <input type="text" id="excelQuery" class="form-control" placeholder="Search Name or Reg No..."
+                    onkeyup="searchExcelData()"
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+            </div>
+            <div id="excelResults" style="margin-top: 1rem; min-height: 100px;">
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Results from loaded Excel sheet will appear
+                    here...</p>
+            </div>
+            <div
+                style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; text-align: center;">
+                <a href="/admin/import-excel" class="btn"
+                    style="font-size: 0.7rem; color: var(--text-muted); text-decoration: none;">
+                    <i class="fa-solid fa-sync"></i> Re-sync Excel Source
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -248,6 +284,55 @@
                 section.style.opacity = '1';
             }
         });
+    }
+
+    function openExcelSearch(name, regId) {
+        console.log("Opening Excel Search for:", name, regId);
+        const drawer = document.getElementById('excelDrawer');
+        drawer.style.display = 'block';
+        const query = regId || name;
+        document.getElementById('excelQuery').value = query;
+        searchExcelData();
+    }
+
+    function closeExcelSearch() {
+        document.getElementById('excelDrawer').style.display = 'none';
+    }
+
+    async function searchExcelData() {
+        const query = document.getElementById('excelQuery').value;
+        console.log("Searching Excel for:", query);
+        const resultsDiv = document.getElementById('excelResults');
+
+        if (query.length < 2) {
+            resultsDiv.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted);">Type at least 2 characters...</p>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/search-excel?query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.results.length === 0) {
+                resultsDiv.innerHTML = '<p style="color: var(--danger-color); font-size: 0.8rem;">No matches found in Excel source.</p>';
+            } else {
+                let html = '';
+                data.results.forEach(res => {
+                    html += `
+                        <div style="background: rgba(255,255,255,0.05); padding: 0.8rem; border-radius: 8px; margin-bottom: 0.5rem; border-left: 3px solid #00ff7f;">
+                            <div style="font-weight: 600; font-size: 0.9rem;">${res.doctor_name}</div>
+                            <div style="font-family: monospace; color: #00ff7f; font-size: 0.8rem;">${res.doctor_id}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                ${res.state} | Reg: ${res.registration_year}
+                            </div>
+                        </div>
+                    `;
+                });
+                resultsDiv.innerHTML = html;
+            }
+        } catch (e) {
+            resultsDiv.innerHTML = '<p style="color: var(--danger-color);">Search error.</p>';
+        }
     }
 
     // Add CSS for fade integration
