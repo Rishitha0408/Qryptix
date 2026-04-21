@@ -31,10 +31,10 @@ A multi-stage registration process to prevent unauthorized access:
 
 ## 🛠️ Technology Stack
 - **Backend**: Python / Flask
-- **Database**: SQLite (SQLAlchemy ORM)
+- **Database**: SQLite (Local) / PostgreSQL (Production)
 - **Security**: Werkzeug, Cryptography, Flask-Limiter
 - **Frontend**: HTML5, Vanilla CSS (Glassmorphism UI), FontAwesome
-- **Deployment**: Vercel ready via `vercel.json`
+- **Deployment**: Render / PythonAnywhere / Railway
 
 ## 📦 Installation & Setup
 
@@ -61,11 +61,21 @@ A multi-stage registration process to prevent unauthorized access:
    ```
    Access the portal at `http://127.0.0.1:5000`.
 
-## 🌐 Deployment (Vercel)
-The repository includes a `vercel.json` configuration. To deploy:
-1. Push your code to GitHub.
-2. Link your repository to a new Vercel project.
-3. Vercel will auto-detect the Flask application and deploy it as a serverless function.
+## 🌐 Deployment (Recommended Alternatives)
+
+Due to recent infrastructure shifts, we recommend the following platforms for hosting:
+
+### 1. Render (Web Services)
+- **Setup**: Create a new Web Service and link this GitHub repository.
+- **Start Command**: `gunicorn app:app`
+- **Environment**: Set `DATABASE_URL` if using an external PostgreSQL instance.
+
+### 2. PythonAnywhere
+- **Setup**: Perfect for simple Flask hosting.
+- **Note**: Ensure you configure the VirtualEnv and set the paths in the `WSGI configuration` file.
+
+### 3. Railway
+- **Setup**: High-performance hosting with easy environment variable management.
 
 ---
 *Disclaimer: This prototype is intended for research and hackathon purposes. The quantum protocols are simulated to demonstrate the architectural implementation of future-proof medical data storage.*

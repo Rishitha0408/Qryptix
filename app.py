@@ -18,9 +18,9 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SECRET_KEY'] = 'SuperSecretKey_QKD_PQE_Qryptix_2026'
 
-# Custom Remote Address Helper for Vercel
+# Custom Remote Address Helper
 def get_user_ip():
-    # Vercel and other proxies use X-Forwarded-For to pass the real client IP
+    # Use X-Forwarded-For if behind a proxy, otherwise standard remote address
     x_forwarded_for = request.headers.get('X-Forwarded-For')
     if x_forwarded_for:
         return x_forwarded_for.split(',')[0].strip()
@@ -35,38 +35,30 @@ limiter = Limiter(
 )
 
 # Admin Audit Logging Configuration
-if os.environ.get('VERCEL') == '1':
-    # On Vercel, log to stdout/stderr (standard practice)
+if os.environ.get('DATABASE_URL'):
+    # Production/Cloud: log to console
     logging.basicConfig(level=logging.INFO, 
                         format='%(asctime)s - %(levelname)s - %(message)s')
-    print("Vercel environment detected. Logging to console.")
 else:
-    # Local development: keep file logging
+    # Local development: log to file
     logging.basicConfig(filename='admin_approvals.log', level=logging.INFO, 
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
-# --- Permanent Postgres Configuration for Vercel ---
-if os.environ.get('VERCEL') == '1':
-    # Vercel provides POSTGRES_URL or DATABASE_URL when you connect Neon/Postgres
-    database_url = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
-    
-    if database_url:
-        # SQLAlchemy requires 'postgresql://' but Vercel sometimes provides 'postgres://'
-        if database_url.startswith("postgres://"):
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
-        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    else:
-        # Emergency fallback to /tmp if Postgres is not found but running on Vercel
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/database_v2.db'
+# --- Database Configuration ---
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Fix for SQLAlchemy requiring 'postgresql://' instead of 'postgres://'
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
-    # Standard SQLite for Local Development
     db_path = os.path.join(basedir, 'instance', 'database_v2.db')
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = '/tmp/uploads' if os.environ.get('VERCEL') else os.path.join(basedir, 'uploads')
-app.config['SECURE_FOLDERS'] = '/tmp/secure_folders' if os.environ.get('VERCEL') else os.path.join(basedir, 'secure_folders')
+app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
+app.config['SECURE_FOLDERS'] = os.path.join(basedir, 'secure_folders')
 
 print(f"Database located at: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
