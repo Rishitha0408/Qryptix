@@ -5,7 +5,8 @@
     <div style="text-align: center; margin-bottom: 2rem;">
         <i class="fa-solid fa-atom fa-3x text-gradient" style="margin-bottom: 1rem;"></i>
         <h2 style="margin-bottom: 0.5rem;">Secure <span class="text-gradient">Access</span></h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Portal for doctors and system administrators.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Lattice-secured gateway for doctors and system
+            administrators.</p>
     </div>
 
     <form method="POST" action="{{ url_for('login') }}">
@@ -22,11 +23,12 @@
         <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem; font-weight: 600;">
             Authenticate Access &nbsp;<i class="fa-solid fa-shield-check"></i>
         </button>
-        <div style="text-align: center; margin-top: 1.5rem;">
-            <p style="font-size: 0.85rem; color: var(--text-muted)">
-                New medical collaborator? <a href="{{ url_for('register') }}"
-                    style="color: var(--primary-color);">Initialize Registration</a>
-            </p>
+        <div
+            style="text-align: center; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">New medical collaborator?</p>
+            <a href="{{ url_for('register') }}" class="btn btn-outline btn-block" style="font-size: 0.9rem;">
+                <i class="fa-solid fa-user-plus"></i> Initialize Registration
+            </a>
         </div>
     </form>
 </div>

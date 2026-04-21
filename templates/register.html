@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="glass-panel form-container">
-    <h2 style="text-align: center; margin-bottom: 2rem;">Qryptix <span class="text-gradient">Doctor</span>
-        Registration</h2>
+    <h2 style="text-align: center; margin-bottom: 2rem;">Qryptix Registration<span class="text-gradient">Doctor</span>
+        Enrollment</h2>
     <form method="POST" action="{{ url_for('register') }}">
         <div class="form-group">
             <label for="full_name"><i class="fa-solid fa-user-doctor"></i> Full Name (as per NMC)</label>
@@ -11,9 +11,8 @@
                 placeholder="Ex: Dr. John Smith">
         </div>
         <div class="form-group">
-            <label for="username"><i class="fa-solid fa-fingerprint"></i> System Username</label>
-            <input type="text" id="username" name="username" class="form-control" required
-                placeholder="Ex: drsmith_vault">
+            <label for="username"><i class="fa-solid fa-fingerprint"></i> Username</label>
+            <input type="text" id="username" name="username" class="form-control" required placeholder="Ex: drsmith">
         </div>
         <div class="form-group">
             <label for="email"><i class="fa-solid fa-envelope"></i> Email Address</label>
@@ -21,14 +20,14 @@
                 placeholder="Ex: dr.smith@example.com">
         </div>
         <div class="form-group">
-            <label for="mobile_number"><i class="fa-solid fa-phone"></i> Mobile Number</label>
+            <label for="mobile_number"><i class="fa-solid fa-phone"></i> Contact Number</label>
             <input type="tel" id="mobile_number" name="mobile_number" class="form-control" required
-                placeholder="Ex: +1 234 567 8900">
+                placeholder="Ex: +91 834 567 8900">
         </div>
         <div class="form-group">
-            <label for="registration_year"><i class="fa-solid fa-calendar-days"></i> MNC Registration Year</label>
+            <label for="registration_year"><i class="fa-solid fa-calendar-days"></i> NMC Registration Year</label>
             <input type="number" id="registration_year" name="registration_year" class="form-control" required
-                placeholder="Ex: 2022" min="1950" max="2026">
+                placeholder="Ex: 1999" min="1950" max="2029">
         </div>
         <div class="form-group">
             <label for="state_medical_council"><i class="fa-solid fa-building-columns"></i> State Medical
@@ -73,7 +72,7 @@
                 placeholder="Ex: GOV-12345678">
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;"><i
                     class="fa-solid fa-circle-info"></i> Your license will be manually verified via the National Medical
-                Commission (NMC) portal.
+                Commission (NMC) portal by admin.
             </p>
         </div>
         <div class="form-group">
@@ -81,11 +80,20 @@
             <input type="password" id="password" name="password" class="form-control" required
                 placeholder="Use high-entropy password">
         </div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem; font-weight: 600;">Initiate
-            Enrollment &nbsp;<i class="fa-solid fa-paper-plane"></i></button>
-        <div style="text-align: center; margin-top: 1rem;">
-            <p style="font-size: 0.9rem; color: var(--text-muted)">Already a member? <a
-                    href="{{ url_for('login') }}">Access Portal</a></p>
+        <div style="margin-top: 2rem; text-align: center;">
+            <p style="font-size: 0.75rem; color: var(--accent-color); margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-shield-halved"></i> Lattice-Secured Enrollment Channel Active
+            </p>
+            <button type="submit" class="btn btn-primary btn-block">
+                Initiate Enrollment &nbsp;<i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+        <div
+            style="text-align: center; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Already a member?</p>
+            <a href="{{ url_for('login') }}" class="btn btn-outline btn-block" style="font-size: 0.9rem;">
+                <i class="fa-solid fa-right-to-bracket"></i> Access Portal
+            </a>
         </div>
     </form>
 </div>

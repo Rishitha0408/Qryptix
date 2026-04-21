@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qryptix Retinal Vault</title>
+    <title>Qryptix: Quantum & Lattice Vault</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -17,15 +17,17 @@
             <span class="text-gradient">Qryptix</span>
         </div>
         <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('index') }}"><i class="fa-solid fa-house"></i> Home</a>
             {% if user %}
             {% if user.role == 'admin' %}
-            <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-shield-halved"></i> Dashboard</a>
             {% elif user.role == 'doctor' %}
-            <a href="{{ url_for('doctor_dashboard') }}">My Workspace</a>
+            <a href="{{ url_for('doctor_dashboard') }}"><i class="fa-solid fa-microscope"></i> Dashboard</a>
             {% endif %}
             <a href="{{ url_for('logout') }}" class="btn-outline"
-                style="padding: 0.5rem 1rem; border-radius: 4px;">Logout</a>
+                style="padding: 0.5rem 1rem; border-radius: 4px; margin-left: 2rem;">
+                <i class="fa-solid fa-power-off"></i> Logout
+            </a>
             {% else %}
             <a href="{{ url_for('login') }}">Access Portal</a>
             <a href="{{ url_for('register') }}" class="btn-primary"

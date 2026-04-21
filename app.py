@@ -361,7 +361,7 @@ def approve_doctor(current_user, user_id):
     user.is_approved = True
     db.session.commit()
     logging.info(f"Admin {current_user.username} approved Doctor {user.username}")
-    flash(f"Doctor '{user.username}' clearance approved. Access granted.", "success")
+    flash(f"Doctor '{user.username}'  Access granted.", "success")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/reject/<int:user_id>')
@@ -375,7 +375,7 @@ def reject_doctor(current_user, user_id):
     username = user.username
     db.session.delete(user)
     db.session.commit()
-    flash(f"Doctor '{username}' request rejected and removed.", "warning")
+    flash(f"Doctor '{username}' request rejected,Sorry Try again.", "warning")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/doctor_dashboard')
@@ -501,7 +501,7 @@ def upload_images(current_user, folder_id):
     db.session.commit()
     if successful > 0:
         session['last_handshake'] = latest_handshake
-        flash(f"Quantum Sequence Complete. {successful} retinal images secured via Hybrid (QKD + Lattice) Cryptography.", "success")
+        flash(f"Quantum Secure Complete. {successful} retinal images secured via Hybrid (QKD + Lattice) Cryptography.", "success")
     else:
         flash("No valid medical images were found in the selection.", "warning")
     return redirect(url_for('folder_view', folder_id=folder_id))

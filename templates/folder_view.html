@@ -8,8 +8,8 @@
                     class="text-gradient">{{ folder.name }}</span></h2>
             {% if not folder.is_active %}
             <span class="badge"
-                style="background: var(--danger-color); color: white; display: inline-block; margin-top: 0.5rem;">ARCHIVED
-                / INACTIVE</span>
+                style="background: var(--danger-color); color: white; display: inline-block; margin-top: 0.5rem;">INACTIVE
+            </span>
             {% endif %}
         </div>
         <div style="display: flex; gap: 1rem;">
@@ -18,11 +18,9 @@
                 style="background: transparent; border-color: var(--danger-color); color: var(--danger-color);"
                 onclick="return confirm('Deactivate this patient workspace? All data remains stored but will be moved to archives.')"><i
                     class="fa-solid fa-box-archive"></i> Deactivate</a>
-            {% else %}
-            <a href="{{ url_for('activate_folder', folder_id=folder.id) }}" class="btn btn-success"
-                style="background: transparent; border-color: var(--success-color); color: var(--success-color);"><i
-                    class="fa-solid fa-box-open"></i> Reactivate</a>
-            {% endif %}
+
+
+            {% end %}
             <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline"><i
                     class="fa-solid fa-house-medical"></i> All Portals</a>
         </div>
@@ -39,7 +37,7 @@
             </div>
             <h3 style="margin-bottom: 0.5rem;">Quantum Biometric Uplink</h3>
             <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem;">Select medical images or an
-                entire folder. Qryptix will auto-detect and encrypt all biometric data.</p>
+                entire folder. Qryptix will encrypt all biometric data.</p>
 
             <form id="upload-form" method="POST" action="{{ url_for('upload_images', folder_id=folder.id) }}"
                 enctype="multipart/form-data">
@@ -67,7 +65,7 @@
                 <div id="upload-actions" style="margin-top: 2rem; display: none;">
                     <button type="submit" id="encrypt-btn" class="btn btn-primary"
                         style="padding: 1rem 2.5rem; border-radius: 50px; font-weight: 700; font-size: 1.1rem; box-shadow: 0 0 20px rgba(0, 198, 255, 0.4);">
-                        <i class="fa-solid fa-lock"></i> &nbsp;Encrypt & Secure via QKD
+                        <i class="fa-solid fa-lock"></i> &nbsp;Encrypt & Secure
                     </button>
                     <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--warning-color);">
                         <i class="fa-solid fa-triangle-exclamation"></i> Ready to initiate Purely Quantum Cryptography.

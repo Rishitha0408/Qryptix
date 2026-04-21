@@ -2,37 +2,79 @@
 
 {% block content %}
 <div class="hero">
-    <h1>Purely <span class="text-gradient">Quantum Cryptography</span> powered by Qryptix</h1>
-    <p>A high-performance medical workspace for retinal bio-scans. Utilizing dynamic QKD
-        protocols (BB84, CASCADE, DPS) for unbreakable data security. Trusted by government-verified medical teams.</p>
+    <h1>
+        {% if user and user.role == 'admin' %}
+        <span class="text-gradient">Administrator Portal</span> & Oversight Control
+        {% else %}
+        Purely <span class="text-gradient">Quantum & Lattice Encryption</span> powered by Qryptix
+        {% endif %}
+    </h1>
+    <p>
+        {% if user and user.role == 'admin' %}
+        Secure administrative root access for Qryptix. Monitor quantum channel stability, verify medical personnel
+        credentials, and ensure the integrity of the Lattice-based security vaults.
+        {% else %}
+        A high-performance medical workspace for retinal bio-scans. Utilizing dynamic QKD
+        protocols (BB84, CASCADE, DPS) and Lattice Based Encryption for unbreakable data security. Trusted by
+        government-verified medical teams.
+        {% endif %}
+    </p>
 
-    <div>
+    <div style="margin-top: 2rem;">
+        {% if not user %}
         <a href="{{ url_for('login') }}" class="btn btn-primary" style="margin-right: 1rem;">
             <i class="fa-solid fa-right-to-bracket"></i> Access Portal
         </a>
         <a href="{{ url_for('register') }}" class="btn btn-outline">
             <i class="fa-solid fa-user-plus"></i> Join Medical Team
         </a>
+        {% elif user.role == 'admin' %}
+        <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
+            <div class="glass-panel"
+                style="padding: 1.5rem; min-width: 200px; border: 1px solid rgba(0, 255, 204, 0.2); text-align: center;">
+                <div
+                    style="font-size: 0.75rem; color: var(--accent-color); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700;">
+                    System Health</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #00ffcc;"><i
+                        class="fa-solid fa-heart-pulse"></i> OPTIMAL</div>
+            </div>
+            <div class="glass-panel"
+                style="padding: 1.5rem; min-width: 200px; border: 1px solid rgba(0, 198, 255, 0.2); text-align: center;">
+                <div
+                    style="font-size: 0.75rem; color: var(--accent-color); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700;">
+                    QKD Stability</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary-color);"><i
+                        class="fa-solid fa-bolt"></i> 99.8%</div>
+            </div>
+            <div class="glass-panel"
+                style="padding: 1.5rem; min-width: 200px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+                <div
+                    style="font-size: 0.75rem; color: var(--accent-color); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700;">
+                    Active Vaults</div>
+                <div style="font-size: 1.4rem; font-weight: 800;"><i class="fa-solid fa-vault"></i> SECURE</div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-
     <div class="feature-list">
         <div class="feature">
             <div class="feature-icon"><i class="fa-solid fa-key"></i></div>
-            <h3>Dynamic QKD</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted)">Protocol toggles automatically between BB84, CASCADE,
-                DPS based on channel stability.</p>
+            <h3>Hybrid QKD + Lattice</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Security fusion of Quantum Physics (QKD) and
+                Post-Quantum
+                Math (Lattice-based KEM).</p>
         </div>
         <div class="feature">
             <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
-            <h3>Retinal Encryption</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted)">Purely quantum-safe processing
-                for high-resolution retinal data.</p>
+            <h3>Lattice-Safe Security</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Advanced AES-256 encryption using keys derived from
+                lattices and quantum entropy.</p>
         </div>
         <div class="feature">
-            <div class="feature-icon"><i class="fa-solid fa-download"></i></div>
-            <h3>Secure Exports</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted)">Download encrypted raw data paired with isolated
-                quantum secret key files.</p>
+            <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
+            <h3>Physics-Based Fusion</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted)">Multi-layer protection ensures zero-knowledge storage
+                against future quantum strikes.</p>
         </div>
     </div>
 </div>
