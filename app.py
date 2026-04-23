@@ -266,10 +266,36 @@ def admin_dashboard(current_user):
 @admin_required
 def verify_license(current_user, user_id):
     user = User.query.get_or_404(user_id)
+    
+    # NEW: Secure Cross-Attribute Verification
+    official_record = VerificationSource.query.filter_by(doctor_id=user.license_id).first()
+    
+    if not official_record:
+        flash(f"Verification Failed: License ID {user.license_id} NOT found in the official registry.", "danger")
+        return redirect(url_for('admin_dashboard'))
+    
+    # Check for mismatches in critical registration data
+    mismatches = []
+    if user.full_name.strip().lower() != official_record.doctor_name.strip().lower():
+        mismatches.append(f"Name (Found: {official_record.doctor_name})")
+    
+    # Registration Year check (handle string/int conversion)
+    if str(user.registration_year) != str(official_record.registration_year):
+        mismatches.append(f"Reg. Year (Found: {official_record.registration_year})")
+        
+    if user.state_medical_council.strip().lower() != official_record.state.strip().lower():
+        mismatches.append(f"State Council (Found: {official_record.state})")
+
+    if mismatches:
+        flash(f"CRITICAL MISMATCH for {user.username}: {', '.join(mismatches)}. Manual review required.", "danger")
+        logging.warning(f"Admin {current_user.username} - Verification BLOCKED for {user.username} due to mismatches: {mismatches}")
+        return redirect(url_for('admin_dashboard'))
+
+    # If all critical attributes match
     user.is_license_valid = True
     db.session.commit()
-    logging.info(f"Admin {current_user.username} verified license for Doctor {user.username} (License ID: {user.license_id})")
-    flash(f"Medical License for '{user.username}' marked as VALID.", "success")
+    logging.info(f"Admin {current_user.username} verified AUTHENTIC profile for Doctor {user.username}")
+    flash(f"Verification SUCCESS: All registration attributes for '{user.username}' match the official records.", "success")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/api/search-excel')
@@ -330,9 +356,9 @@ def import_excel_data(current_user):
                     state=data.get('State')
                 )
                 db.session.add(new_entry)
-                imported += 1
+                imported = imported + 1
             else:
-                skipped += 1
+                skipped = skipped + 1
         
         db.session.commit()
         flash(f"Excel sync complete. {imported} new records added, {skipped} existing skipped.", "success")
@@ -481,7 +507,7 @@ def upload_images(current_user, folder_id):
             new_image.lattice_hash = hybrid_data['lattice_hash']
             
             db.session.add(new_image)
-            successful += 1
+            successful = successful + 1
             latest_handshake = {
                 'protocol': protocol,
                 'qkd_hash': hybrid_data['qkd_hash'],

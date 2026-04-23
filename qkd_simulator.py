@@ -70,12 +70,14 @@ def generate_hybrid_quantum_key(protocol):
     """
     # 1. Physics Layer: QKD Secret
     qkd_secret = os.urandom(32) # Simulated photon-derived secret
-    qkd_hash = hashlib.sha256(qkd_secret).hexdigest()[:16]
+    qkd_hash_str = hashlib.sha256(qkd_secret).hexdigest()
+    qkd_hash = qkd_hash_str[:16]
     
     # 2. Math Layer: Lattice Secret (Simulating Kyber/ML-KEM)
     lattice_kem = LatticeKEM()
     lattice_secret = lattice_kem.generate_shared_secret()
-    lattice_hash = hashlib.sha256(lattice_secret).hexdigest()[:16]
+    lattice_hash_str = hashlib.sha256(lattice_secret).hexdigest()
+    lattice_hash = lattice_hash_str[:16]
     
     # 3. Hybrid Fusion: Mix both secrets using SHA-256
     # This ensures that even if one layer is compromised, the other remains secure.
@@ -85,7 +87,8 @@ def generate_hybrid_quantum_key(protocol):
     hasher.update(protocol.encode()) # Bind the protocol to the key logic
     
     final_key = hasher.digest() # 256-bit Hybrid Key
-    fusion_id = hashlib.sha256(final_key).hexdigest()[:16]
+    fusion_id_str = hashlib.sha256(final_key).hexdigest()
+    fusion_id = fusion_id_str[:16]
     
     return {
         "key": final_key,
