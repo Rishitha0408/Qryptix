@@ -189,9 +189,8 @@ def register():
         password = request.form.get('password')
         license_id = request.form.get('license_id')
 
-        if User.query.filter_by(username=username).first():
-            flash("Username already exists", "danger")
-            return redirect(url_for('register'))
+        # Note: Username uniqueness check removed to allow multiple users with matching names.
+        # Uniqueness is now strictly enforced via Email and License ID.
 
         if User.query.filter_by(email=email).first():
             flash("Email already registered in Qryptix.", "danger")
@@ -226,9 +225,11 @@ def register():
 @limiter.limit("10 per minute")
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        identifier = request.form.get('username') # This label in form can represent Email/Username
         password = request.form.get('password')
-        user = User.query.filter_by(username=username).first()
+        
+        # Primary lookup by Email (unique) or License ID (unique)
+        user = User.query.filter((User.email == identifier) | (User.license_id == identifier) | (User.username == identifier)).first()
 
         if user and check_password_hash(user.password, password):
             if user.role == 'doctor':
@@ -267,7 +268,7 @@ def admin_dashboard(current_user):
 def verify_license(current_user, user_id):
     user = User.query.get_or_404(user_id)
     
-    # NEW: Secure Cross-Attribute Verification
+    # Secure Cross-Attribute Verification
     official_record = VerificationSource.query.filter_by(doctor_id=user.license_id).first()
     
     if not official_record:
@@ -276,14 +277,18 @@ def verify_license(current_user, user_id):
     
     # Check for mismatches in critical registration data
     mismatches = []
-    if user.full_name.strip().lower() != official_record.doctor_name.strip().lower():
+    user_name = (user.full_name or "").strip().lower()
+    official_name = (official_record.doctor_name or "").strip().lower()
+    if user_name != official_name:
         mismatches.append(f"Name (Found: {official_record.doctor_name})")
     
     # Registration Year check (handle string/int conversion)
-    if str(user.registration_year) != str(official_record.registration_year):
+    if str(user.registration_year).strip() != str(official_record.registration_year).strip():
         mismatches.append(f"Reg. Year (Found: {official_record.registration_year})")
         
-    if user.state_medical_council.strip().lower() != official_record.state.strip().lower():
+    user_council = (user.state_medical_council or "").strip().lower()
+    official_state = (official_record.state or "").strip().lower()
+    if official_state not in user_council and user_council not in official_state:
         mismatches.append(f"State Council (Found: {official_record.state})")
 
     if mismatches:
@@ -296,6 +301,74 @@ def verify_license(current_user, user_id):
     db.session.commit()
     logging.info(f"Admin {current_user.username} verified AUTHENTIC profile for Doctor {user.username}")
     flash(f"Verification SUCCESS: All registration attributes for '{user.username}' match the official records.", "success")
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/verify-all-licenses')
+@login_required
+@admin_required
+def verify_all_licenses(current_user):
+    pending_docs = User.query.filter_by(role='doctor', is_license_valid=False).all()
+    if not pending_docs:
+        flash("No pending doctor licenses to verify.", "info")
+        return redirect(url_for('admin_dashboard'))
+    
+    verified_count = 0
+    mismatch_details = []
+    
+    for user in pending_docs:
+        official_record = VerificationSource.query.filter_by(doctor_id=user.license_id).first()
+        if not official_record:
+            mismatch_details.append(f"{user.username} (License ID {user.license_id} not found)")
+            continue
+        
+        mismatches = []
+        user_name = (user.full_name or "").strip().lower()
+        official_name = (official_record.doctor_name or "").strip().lower()
+        if user_name != official_name:
+            mismatches.append("Name")
+        
+        if str(user.registration_year).strip() != str(official_record.registration_year).strip():
+            mismatches.append("Reg. Year")
+            
+        user_council = (user.state_medical_council or "").strip().lower()
+        official_state = (official_record.state or "").strip().lower()
+        if official_state not in user_council and user_council not in official_state:
+            mismatches.append("State Council")
+            
+        if mismatches:
+            mismatch_details.append(f"{user.username} (Mismatches: {', '.join(mismatches)})")
+            logging.warning(f"Admin {current_user.username} - Bulk verification mismatch for {user.username}: {mismatches}")
+        else:
+            user.is_license_valid = True
+            verified_count += 1
+            logging.info(f"Admin {current_user.username} verified AUTHENTIC profile for Doctor {user.username} via Bulk")
+            
+    db.session.commit()
+    
+    if verified_count > 0:
+        flash(f"Successfully verified licenses for {verified_count} doctor(s).", "success")
+    if mismatch_details:
+        flash(f"Failed to verify {len(mismatch_details)} doctor(s) due to mismatches/missing records: {', '.join(mismatch_details)}", "danger")
+        
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/approve-all-verified')
+@login_required
+@admin_required
+def approve_all_verified(current_user):
+    pending_approved = User.query.filter_by(role='doctor', is_license_valid=True, is_approved=False).all()
+    if not pending_approved:
+        flash("No verified doctors waiting for approval.", "info")
+        return redirect(url_for('admin_dashboard'))
+        
+    approved_count = 0
+    for user in pending_approved:
+        user.is_approved = True
+        approved_count += 1
+        logging.info(f"Admin {current_user.username} approved Doctor {user.username} via Bulk")
+        
+    db.session.commit()
+    flash(f"Successfully approved {approved_count} verified doctor(s). Portal access granted.", "success")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/api/search-excel')
@@ -372,14 +445,13 @@ def import_excel_data(current_user):
 @admin_required
 def approve_doctor(current_user, user_id):
     user = User.query.get_or_404(user_id)
-    if not user.is_license_valid:
-        flash(f"Cannot approve '{user.username}' until license is verified.", "warning")
-        return redirect(url_for('admin_dashboard'))
     
+    # Automatically validate license when manually approved by Admin
+    user.is_license_valid = True
     user.is_approved = True
     db.session.commit()
-    logging.info(f"Admin {current_user.username} approved Doctor {user.username}")
-    flash(f"Doctor '{user.username}'  Access granted.", "success")
+    logging.info(f"Admin {current_user.username} approved Doctor {user.username} (Automatic License Validation)")
+    flash(f"Doctor '{user.username}' approved. Portal access granted.", "success")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/reject/<int:user_id>')
@@ -461,15 +533,26 @@ def upload_images(current_user, folder_id):
     folder_dir = os.path.join(app.config['SECURE_FOLDERS'], str(folder.id))
     os.makedirs(folder_dir, exist_ok=True)
 
+    allowed_exts = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tif', '.tiff', '.webp', '.dcm', '.dicom', '.jp2', '.j2k', '.jxf', '.jfi', '.jfif']
+    
     latest_handshake = None
     for file in files:
         if file and file.filename:
-            # When folders are uploaded, browsers send relative paths. Extract valid file extensions only.
+            # Extract valid file extensions only.
             ext = os.path.splitext(file.filename)[1].lower()
-            if ext not in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tif', '.tiff', '.webp', '.dcm', '.dicom']:
+            if ext not in allowed_exts:
+                logging.warning(f"File skipped: {file.filename} (Unsupported extension: {ext})")
                 continue
                 
-            filename = secure_filename(os.path.basename(file.filename))
+            original_filename = os.path.basename(file.filename)
+            safe_name = secure_filename(original_filename)
+            base_name, _ = os.path.splitext(safe_name)
+            
+            # Generate a unique base name to prevent overwriting existing files
+            unique_suffix = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:15]
+            enc_filename = f"{base_name}_{unique_suffix}_encrypted.bin"
+            key_filename = f"{base_name}_{unique_suffix}_secret_key.bin"
+            
             file_data = file.read()
             
             metrics = get_quantum_channel_diagnostics()
@@ -484,10 +567,6 @@ def upload_images(current_user, folder_id):
             
             encrypted_data = encrypt_data(file_data, key)
             
-            base_name, _ = os.path.splitext(filename)
-            enc_filename = f"{base_name}_encrypted.bin"
-            key_filename = f"{base_name}_secret_key.bin"
-            
             enc_path = os.path.join(folder_dir, enc_filename)
             key_path = os.path.join(folder_dir, key_filename)
             
@@ -496,15 +575,13 @@ def upload_images(current_user, folder_id):
                 
             new_image = MedicalImage(
                 folder_id=folder.id,
-                original_filename=file.filename,
+                original_filename=original_filename,
                 encrypted_image_path=enc_path,
                 key_path=key_path,
                 qkd_protocol_used=protocol,
-                lattice_hash=hybrid_data['qkd_hash'], # Actually qkd_hash for historical tracking
+                lattice_hash=hybrid_data['lattice_hash'],
                 fusion_id=hybrid_data['fusion_id']
             )
-            # Re-map: lattice_hash should be lattice_hash
-            new_image.lattice_hash = hybrid_data['lattice_hash']
             
             db.session.add(new_image)
             successful = successful + 1
@@ -518,7 +595,6 @@ def upload_images(current_user, folder_id):
             
     db.session.commit()
     if successful > 0:
-        session['last_handshake'] = latest_handshake
         flash(f"Quantum Secure Complete. {successful} retinal images secured via Hybrid (QKD + Lattice) Cryptography.", "success")
     else:
         flash("No valid medical images were found in the selection.", "warning")

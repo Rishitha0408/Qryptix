@@ -19,8 +19,7 @@
                 onclick="return confirm('Deactivate this patient workspace? All data remains stored but will be moved to archives.')"><i
                     class="fa-solid fa-box-archive"></i> Deactivate</a>
 
-
-            {% end %}
+            {% endif %}
             <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline"><i
                     class="fa-solid fa-house-medical"></i> All Portals</a>
         </div>
@@ -126,48 +125,6 @@
     </script>
     {% endif %}
 
-    {% if session.get('last_handshake') %}
-    <div class="glass-panel" style="margin-bottom: 2rem; border-left: 4px solid var(--accent-color); padding: 1.5rem;">
-        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-            <i class="fa-solid fa-code-branch fa-2x text-gradient"></i>
-            <h4 style="margin: 0;">Hybrid Post-Quantum Handshake Analysis</h4>
-        </div>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
-            The system has successfully fused two independent security layers to generate a future-proof 256-bit
-            symmetric key.
-        </p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
-                <div
-                    style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-color); margin-bottom: 0.5rem;">
-                    Layer 1: QKD (Physical)</div>
-                <div style="font-family: monospace; font-size: 0.9rem; color: #fff;">Protocol: {{
-                    session['last_handshake']['protocol'] }}</div>
-                <div style="font-family: monospace; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">
-                    QKD-Secret-Hash: {{ session['last_handshake']['qkd_hash'] }}...</div>
-            </div>
-            <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
-                <div
-                    style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #00ffcc; margin-bottom: 0.5rem;">
-                    Layer 2: Lattice (Kyber)</div>
-                <div style="font-family: monospace; font-size: 0.9rem; color: #fff;">Mechanism: ML-KEM</div>
-                <div style="font-family: monospace; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">
-                    Lattice-Secret-Hash: {{ session['last_handshake']['lattice_hash'] }}...</div>
-            </div>
-            <div
-                style="padding: 1rem; background: rgba(0, 198, 255, 0.1); border: 1px solid var(--accent-color); border-radius: 8px;">
-                <div
-                    style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 0.5rem;">
-                    Final Fusion: SHA-256</div>
-                <div style="font-family: monospace; font-size: 0.9rem; color: #fff;">Fusion ID: {{
-                    session['last_handshake']['fusion_id'] }}</div>
-                <div
-                    style="font-family: monospace; font-size: 0.65rem; color: var(--accent-color); margin-top: 0.3rem;">
-                    F(QKD_S || LAT_S || Prot) = K_AES256</div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Encrypted Images -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">

@@ -78,7 +78,21 @@
     </div>
 
     <div class="glass-panel action-panel clearance-container" id="pendingSection">
-        <h3 style="color: var(--warning-color)"><i class="fa-solid fa-triangle-exclamation"></i> Pending Clearances</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h3 style="color: var(--warning-color); margin: 0;"><i class="fa-solid fa-triangle-exclamation"></i> Pending Clearances</h3>
+            {% if pending %}
+            <div style="display: flex; gap: 0.8rem;">
+                <a href="{{ url_for('verify_all_licenses') }}" class="btn"
+                    style="background: rgba(0, 163, 255, 0.2); border: 1px solid var(--accent-color); color: white; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-users-gear"></i> Verify All Licenses
+                </a>
+                <a href="{{ url_for('approve_all_verified') }}" class="btn btn-success"
+                    style="padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-user-check"></i> Approve All Verified
+                </a>
+            </div>
+            {% endif %}
+        </div>
         {% if pending %}
         <table>
             <thead>
@@ -88,7 +102,7 @@
                     <th>License (MNC)</th>
                     <th>Reg Year</th>
                     <th>Medical Council</th>
-                    <th>NMC Portal</th>
+                    <th>Status / Tools</th>
                     <th style="text-align: right;">Action</th>
                 </tr>
             </thead>
@@ -106,47 +120,50 @@
                     <td style="font-size: 0.85rem; color: var(--text-muted);">{{ doc.state_medical_council or 'N/A' }}
                     </td>
                     <td>
-                        <a href="https://www.nmc.org.in/information-desk/indian-medical-register/" target="_blank"
-                            class="btn"
-                            style="padding: 0.3rem 0.6rem; font-size: 0.7rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-color);">
-                            <i class="fa-solid fa-up-right-from-square"></i> Check NMC
-                        </a>
-                        <button onclick="openExcelSearch(this.dataset.name, this.dataset.id)"
-                            data-name="{{ doc.full_name or doc.username }}" data-id="{{ doc.license_id }}" class="btn"
-                            style="padding: 0.3rem 0.6rem; font-size: 0.7rem; background: rgba(0, 255, 127, 0.1); border: 1px solid rgba(0, 255, 127, 0.2); color: #00ff7f; margin-top: 5px; display: block; width: 100%; text-align: left;">
-                            <i class="fa-solid fa-file-excel"></i> Check Excel
-                        </button>
+                        <div style="margin-bottom: 0.5rem;">
+                            {% if doc.is_license_valid %}
+                            <span class="badge" style="background: rgba(0, 255, 127, 0.15); color: #00ff7f; border: 1px solid rgba(0, 255, 127, 0.3); font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">
+                                <i class="fa-solid fa-circle-check"></i> Verified
+                            </span>
+                            {% else %}
+                            <span class="badge" style="background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">
+                                <i class="fa-solid fa-circle-exclamation"></i> Unverified
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <a href="https://www.nmc.org.in/information-desk/indian-medical-register/" target="_blank"
+                                class="btn"
+                                style="padding: 0.2rem 0.4rem; font-size: 0.7rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-color);">
+                                <i class="fa-solid fa-up-right-from-square"></i> NMC
+                            </a>
+                            <button onclick="openExcelSearch(this.dataset.name, this.dataset.id)"
+                                data-name="{{ doc.full_name or doc.username }}" data-id="{{ doc.license_id }}" class="btn"
+                                style="padding: 0.2rem 0.4rem; font-size: 0.7rem; background: rgba(0, 255, 127, 0.1); border: 1px solid rgba(0, 255, 127, 0.2); color: #00ff7f;">
+                                <i class="fa-solid fa-file-excel"></i> Excel
+                            </button>
+                        </div>
                     </td>
-                    <td>
-                        {% if doc.is_license_valid %}
-                        <span style="color: var(--success-color);"><i class="fa-solid fa-check-double"></i>
-                            Validated</span>
-                        {% else %}
-                        <span style="color: var(--warning-color); font-size: 0.8rem;"><i
-                                class="fa-solid fa-hourglass-start"></i> Pending Verification</span>
-                        {% endif %}
-                    </td>
-                    <td
-                        style="text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
-                        <a href="https://www.nmc.org.in/information-desk/indian-medical-register/" target="_blank"
-                            class="btn"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
-                            <i class="fa-solid fa-magnifying-glass"></i> NMC Portal
-                        </a>
+                    <td style="text-align: right;">
+                        <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                            {% if not doc.is_license_valid %}
+                            <a href="{{ url_for('verify_license', user_id=doc.id) }}" class="btn"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: rgba(0, 163, 255, 0.15); border: 1px solid rgba(0, 163, 255, 0.3); color: var(--accent-color); font-weight: 600;">
+                                <i class="fa-solid fa-user-check"></i> Verify License
+                            </a>
+                            {% endif %}
 
-                        {% if not doc.is_license_valid %}
-                        <a href="{{ url_for('verify_license', user_id=doc.id) }}" class="btn"
-                            style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background: var(--accent-color); border: none; color: white;">
-                            Verify License
-                        </a>
-                        {% endif %}
+                            <a href="{{ url_for('approve_doctor', user_id=doc.id) }}" class="btn btn-success"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600;">
+                                <i class="fa-solid fa-thumbs-up"></i> Approve
+                            </a>
 
-                        <a href="{{ url_for('approve_doctor', user_id=doc.id) }}" class="btn btn-success"
-                            style="padding: 0.4rem 1rem; font-size: 0.85rem; {% if not doc.is_license_valid %}opacity: 0.5; pointer-events: none;{% endif %}">Approve</a>
-
-                        <a href="{{ url_for('reject_doctor', user_id=doc.id) }}" class="btn btn-danger"
-                            style="padding: 0.4rem 1rem; font-size: 0.85rem; border-color: var(--danger-color); color: var(--danger-color); background: transparent;"
-                            onclick="return confirm('Immediately terminate this doctor application?')">Reject</a>
+                            <a href="{{ url_for('reject_doctor', user_id=doc.id) }}" class="btn btn-danger"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--danger-color); color: var(--danger-color); background: transparent;"
+                                onclick="return confirm('Immediately terminate this doctor application?')">
+                                <i class="fa-solid fa-trash-can"></i> Reject
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
